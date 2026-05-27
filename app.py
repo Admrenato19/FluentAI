@@ -3,934 +3,1178 @@ import anthropic
 import json, re, datetime, random
 
 st.set_page_config(
-    page_title="FluentAI - Aprenda Inglês",
-    page_icon="🎬",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    page_title="FluentAI",
+    page_icon="🎙️",
+    layout="centered",
+    initial_sidebar_state="collapsed",
+    menu_items={},
 )
 
 # ─────────────────────────────────────────────────────────────────
-# GLOBAL CSS
+# SPEAK-STYLE CSS — light, coral, mobile-first
 # ─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-:root{--bg:#0D0D0F;--surface:#16161A;--surface2:#1E1E24;--accent:#E8FF47;--accent3:#47CFFF;--text:#F0EFE9;--muted:#7A7A8A;--border:#2A2A35;--radius:16px;}
-html,body,[class*="css"]{font-family:'DM Sans',sans-serif;background-color:var(--bg);color:var(--text);}
-.stApp{background-color:var(--bg);}
-[data-testid="stSidebar"]{background-color:var(--surface)!important;border-right:1px solid var(--border);}
-[data-testid="stSidebar"] *{color:var(--text)!important;}
-#MainMenu,footer,header{visibility:hidden;}
-.stButton>button{background:var(--accent)!important;color:var(--bg)!important;border:none!important;border-radius:8px!important;font-family:'Syne',sans-serif!important;font-weight:700!important;padding:0.6rem 1.5rem!important;transition:all .2s!important;}
-.stButton>button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(232,255,71,.3)!important;}
-.stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div{background-color:var(--surface2)!important;border:1px solid var(--border)!important;border-radius:10px!important;color:var(--text)!important;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;transition:border-color .2s;}
-.card:hover{border-color:var(--accent);}
-.card-accent{background:linear-gradient(135deg,#1a1a20,#1e1e2a);border:1px solid var(--accent);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
-.card-blue{background:linear-gradient(135deg,#0d1a2a,#0d2035);border:1px solid #47CFFF55;border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;}
-h1,h2,h3{font-family:'Syne',sans-serif!important;font-weight:800!important;color:var(--text)!important;}
-.muted-text{color:var(--muted);font-size:.9rem;}
-.tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:.8rem;color:var(--muted);margin:2px;}
-.msg-user{background:var(--surface2);border-radius:16px 16px 4px 16px;padding:1rem 1.2rem;margin:.5rem 0;border-left:3px solid var(--accent);max-width:85%;margin-left:auto;}
-.msg-ai{background:var(--surface);border-radius:16px 16px 16px 4px;padding:1rem 1.2rem;margin:.5rem 0;border-left:3px solid var(--accent3);max-width:85%;}
-.flashcard{background:linear-gradient(145deg,var(--surface),var(--surface2));border:2px solid var(--accent);border-radius:20px;padding:3rem 2rem;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .3s;}
-.flashcard:hover{transform:scale(1.01);box-shadow:0 10px 40px rgba(232,255,71,.15);}
-.stProgress>div>div>div{background-color:var(--accent)!important;}
-[data-testid="stMetric"]{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;}
-[data-testid="stMetricValue"]{color:var(--accent)!important;font-family:'Syne',sans-serif!important;}
-.stTabs [data-baseweb="tab-list"]{background:var(--surface)!important;border-radius:10px!important;gap:4px;}
-.stTabs [data-baseweb="tab"]{background:transparent!important;color:var(--muted)!important;border-radius:8px!important;}
-.stTabs [aria-selected="true"]{background:var(--accent)!important;color:var(--bg)!important;font-weight:600!important;}
-.vid-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .2s;cursor:pointer;}
-.vid-card:hover{border-color:var(--accent);transform:translateY(-2px);}
-.vid-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;}
-.vid-meta{padding:.8rem 1rem;}
-.badge{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:600;}
-.badge-green{background:#47CFFF22;color:#47CFFF;border:1px solid #47CFFF44;}
-.badge-yellow{background:#E8FF4722;color:#E8FF47;border:1px solid #E8FF4744;}
-.badge-red{background:#FF6B6B22;color:#FF6B6B;border:1px solid #FF6B6B44;}
-.badge-purple{background:#A78BFA22;color:#A78BFA;border:1px solid #A78BFA44;}
-.weekly-badge{background:linear-gradient(90deg,#E8FF47,#47CFFF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;}
-iframe{border-radius:12px;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #F7F7F8;
+  --surface: #FFFFFF;
+  --border: #EBEBED;
+  --coral: #FF4B4B;
+  --coral-light: #FFF0F0;
+  --coral-mid: #FFD6D6;
+  --text: #1A1A2E;
+  --muted: #8A8A9A;
+  --green: #22C55E;
+  --blue: #3B82F6;
+  --radius: 18px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.07);
+}
+
+html, body, [class*="css"] {
+  font-family: 'Inter', sans-serif !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.stApp { background: var(--bg) !important; max-width: 480px; margin: 0 auto; }
+
+/* Hide ALL Streamlit chrome */
+#MainMenu { visibility: hidden !important; display: none !important; }
+footer { visibility: hidden !important; display: none !important; }
+header { visibility: hidden !important; display: none !important; }
+[data-testid="stSidebar"] { visibility: hidden !important; display: none !important; }
+[data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
+.stDeployButton { display: none !important; }
+button[kind="header"] { display: none !important; }
+section[data-testid="stSidebar"] { display: none !important; }
+
+/* Remove streamlit padding */
+.block-container { padding: 0 1rem 6rem !important; max-width: 480px !important; margin-top: 0 !important; }
+
+/* Typography */
+h1 { font-size: 1.7rem !important; font-weight: 800 !important; color: var(--text) !important; margin-bottom: .2rem !important; }
+h2 { font-size: 1.3rem !important; font-weight: 700 !important; color: var(--text) !important; }
+h3 { font-size: 1.1rem !important; font-weight: 600 !important; color: var(--text) !important; }
+
+/* Buttons */
+.stButton > button {
+  background: var(--coral) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 14px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: .95rem !important;
+  padding: .75rem 1.5rem !important;
+  transition: all .15s !important;
+  box-shadow: 0 4px 14px rgba(255,75,75,.25) !important;
+}
+.stButton > button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(255,75,75,.35) !important;
+}
+.stButton > button:active { transform: translateY(0) !important; }
+
+/* Secondary button style via class */
+.btn-ghost > button {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: none !important;
+}
+
+/* Inputs */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div {
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  color: var(--text) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-bottom: .75rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.card-coral {
+  background: var(--coral-light);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-bottom: .75rem;
+  border: 1px solid var(--coral-mid);
+}
+
+/* Video card */
+.vid-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  margin-bottom: .75rem;
+  transition: transform .15s;
+}
+.vid-card:hover { transform: translateY(-2px); }
+.vid-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.vid-meta { padding: .9rem 1rem; }
+
+/* Chat bubbles */
+.bubble-user {
+  background: var(--coral);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+  padding: .85rem 1.1rem;
+  margin: .4rem 0 .4rem 3rem;
+  font-size: .95rem;
+  line-height: 1.5;
+}
+.bubble-ai {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 18px 18px 18px 4px;
+  padding: .85rem 1.1rem;
+  margin: .4rem 3rem .4rem 0;
+  font-size: .95rem;
+  line-height: 1.5;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+/* Mic button */
+.mic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.5rem 0;
+}
+.mic-btn {
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  background: var(--coral);
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 6px 24px rgba(255,75,75,.35);
+  transition: all .2s;
+}
+.mic-btn:hover { transform: scale(1.07); box-shadow: 0 8px 30px rgba(255,75,75,.45); }
+.mic-btn.active {
+  background: #cc0000;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,75,75,.5); }
+  50% { box-shadow: 0 0 0 16px rgba(255,75,75,0); }
+}
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 999;
+  padding: .4rem 0 .6rem;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.06);
+}
+.nav-item {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: .3rem 0;
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--muted);
+  border: none; background: none;
+  transition: color .15s;
+}
+.nav-item.active { color: var(--coral); }
+.nav-icon { font-size: 1.35rem; }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: .73rem;
+  font-weight: 600;
+}
+.badge-green { background: #dcfce7; color: #16a34a; }
+.badge-yellow { background: #fef9c3; color: #ca8a04; }
+.badge-red { background: #fee2e2; color: #dc2626; }
+.badge-blue { background: #dbeafe; color: #2563eb; }
+.badge-coral { background: var(--coral-light); color: var(--coral); }
+
+/* Progress bar */
+.stProgress > div > div > div { background: var(--coral) !important; }
+
+/* Metrics */
+[data-testid="stMetric"] {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+[data-testid="stMetricValue"] {
+  color: var(--coral) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+/* Tabs override */
+.stTabs [data-baseweb="tab-list"] {
+  background: var(--border) !important;
+  border-radius: 12px !important;
+  gap: 3px;
+  padding: 3px;
+}
+.stTabs [data-baseweb="tab"] {
+  background: transparent !important;
+  color: var(--muted) !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+}
+.stTabs [aria-selected="true"] {
+  background: var(--surface) !important;
+  color: var(--coral) !important;
+}
+
+/* Flashcard */
+.flashcard {
+  background: var(--surface);
+  border: 2px solid var(--coral-mid);
+  border-radius: 24px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  min-height: 180px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+/* Stat card */
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: .6rem;
+}
+.stat-icon { font-size: 1.8rem; }
+.stat-val { font-size: 1.5rem; font-weight: 800; color: var(--coral); }
+.stat-label { font-size: .8rem; color: var(--muted); font-weight: 500; }
+
+iframe { border-radius: 14px !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────
-# WEB SPEECH API
+# TTS — Web Speech API
 # ─────────────────────────────────────────────────────────────────
 st.components.v1.html("""
 <script>
-function fluentSpeak(text,rate=0.85){
-  if(!('speechSynthesis' in window))return;
+function fluentSpeak(text, rate=0.88) {
+  if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-US';u.rate=rate;u.pitch=1.0;
-  const voices=window.speechSynthesis.getVoices();
-  const pref=voices.find(v=>v.lang.startsWith('en')&&(v.name.includes('Google')||v.name.includes('Natural')));
-  if(pref)u.voice=pref;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1.0;
+  const voices = window.speechSynthesis.getVoices();
+  const pref = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural')));
+  if (pref) u.voice = pref;
   window.speechSynthesis.speak(u);
 }
-window.fluentSpeak=fluentSpeak;
+window.fluentSpeak = fluentSpeak;
 </script>
 """, height=0)
 
-def tts_btn(text, label="🔊 Ouvir", rate=0.85):
-    safe = text.replace("'","\\'").replace("\n"," ").replace('"','\\"')[:500]
-    return f'<button onclick="fluentSpeak(\'{safe}\',{rate})" style="background:#E8FF47;color:#0D0D0F;border:none;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer;font-size:.85rem;font-family:Syne,sans-serif;margin:4px 4px 4px 0;">{label}</button>'
+def tts_btn(text, label="🔊", rate=0.88):
+    safe = text.replace("'", "\\'").replace("\n", " ").replace('"', '\\"')[:500]
+    return f'<button onclick="fluentSpeak(\'{safe}\',{rate})" style="background:var(--coral,#FF4B4B);color:white;border:none;border-radius:10px;padding:7px 16px;font-weight:600;cursor:pointer;font-size:.85rem;font-family:Inter,sans-serif;margin:4px 4px 4px 0;">{label}</button>'
 
-STT_HTML = """
-<div style="display:flex;flex-direction:column;gap:10px;">
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-    <button id="btn-start" onclick="startRec()" style="background:#E8FF47;color:#0D0D0F;border:none;border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🎙️ Gravar</button>
-    <button id="btn-stop" onclick="stopRec()" disabled style="background:#FF6B6B;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;opacity:.4;">⏹ Parar</button>
-    <span id="rec-st" style="color:#7A7A8A;font-size:.85rem;">Clique em Gravar e fale em inglês</span>
-  </div>
-  <div id="rec-out" style="background:#1E1E24;border:1px solid #2A2A35;border-radius:10px;padding:.8rem;min-height:55px;color:#F0EFE9;font-size:1rem;line-height:1.6;"></div>
-  <p style="color:#7A7A8A;font-size:.8rem;margin:0;">💡 Após parar, copie o texto e cole no campo abaixo.</p>
+# ─────────────────────────────────────────────────────────────────
+# AUTO-SILENCE STT — continuous, sends on silence
+# ─────────────────────────────────────────────────────────────────
+STT_AUTO_HTML = """
+<div id="stt-container" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:1rem 0;">
+  <button id="mic-btn" onclick="toggleMic()" style="
+    width:84px;height:84px;border-radius:50%;
+    background:#FF4B4B;border:none;cursor:pointer;
+    font-size:2rem;color:white;
+    box-shadow:0 6px 24px rgba(255,75,75,.35);
+    transition:all .2s;
+  ">🎙️</button>
+  <span id="mic-status" style="color:#8A8A9A;font-size:.85rem;font-family:Inter,sans-serif;">Tap to speak</span>
+  <div id="transcript-box" style="
+    background:#fff;border:1.5px solid #EBEBED;border-radius:14px;
+    padding:.8rem 1rem;min-height:52px;width:100%;max-width:380px;
+    color:#1A1A2E;font-size:.95rem;line-height:1.6;font-family:Inter,sans-serif;
+    box-sizing:border-box;
+  "></div>
+  <button id="send-btn" onclick="sendTranscript()" style="
+    display:none;
+    background:#FF4B4B;color:white;border:none;border-radius:12px;
+    padding:10px 28px;font-weight:600;cursor:pointer;
+    font-size:.9rem;font-family:Inter,sans-serif;
+    box-shadow:0 4px 14px rgba(255,75,75,.25);
+  ">Send →</button>
 </div>
 <script>
-let rec=null,final='';
-function startRec(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){document.getElementById('rec-st').innerText='❌ Use Chrome.';return;}
-  rec=new SR();rec.lang='en-US';rec.interimResults=true;rec.continuous=true;final='';
-  rec.onstart=()=>{
-    document.getElementById('btn-start').disabled=true;
-    document.getElementById('btn-stop').disabled=false;
-    document.getElementById('btn-stop').style.opacity='1';
-    document.getElementById('rec-st').innerHTML='<span style="color:#FF6B6B">● Gravando...</span>';
-    document.getElementById('rec-out').innerText='';
+let rec = null, final_t = '', silenceTimer = null, isListening = false;
+
+function toggleMic() {
+  if (isListening) stopRec();
+  else startRec();
+}
+
+function startRec() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { document.getElementById('mic-status').innerText = '❌ Use Chrome'; return; }
+  rec = new SR();
+  rec.lang = 'en-US';
+  rec.interimResults = true;
+  rec.continuous = true;
+  final_t = '';
+
+  rec.onstart = () => {
+    isListening = true;
+    document.getElementById('mic-btn').style.background = '#cc0000';
+    document.getElementById('mic-btn').style.animation = 'pulse 1.2s infinite';
+    document.getElementById('mic-btn').innerHTML = '⏹';
+    document.getElementById('mic-status').innerHTML = '<span style="color:#FF4B4B">● Listening...</span>';
+    document.getElementById('send-btn').style.display = 'none';
+    document.getElementById('transcript-box').innerText = '';
   };
-  rec.onresult=(e)=>{
-    let tmp='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)final+=e.results[i][0].transcript+' ';
-      else tmp+=e.results[i][0].transcript;
+
+  rec.onresult = (e) => {
+    let tmp = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final_t += e.results[i][0].transcript + ' ';
+      else tmp += e.results[i][0].transcript;
     }
-    document.getElementById('rec-out').innerText=final+tmp;
+    document.getElementById('transcript-box').innerText = final_t + tmp;
+    // Reset silence timer
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => { if (isListening) stopRec(); }, 1800);
   };
-  rec.onend=()=>{
-    document.getElementById('btn-start').disabled=false;
-    document.getElementById('btn-stop').disabled=true;
-    document.getElementById('btn-stop').style.opacity='.4';
-    document.getElementById('rec-st').innerText='Gravação encerrada — copie o texto acima.';
-    if(final.trim())navigator.clipboard.writeText(final.trim()).catch(()=>{});
-    document.getElementById('rec-out').style.border='1px solid #E8FF47';
+
+  rec.onend = () => {
+    isListening = false;
+    document.getElementById('mic-btn').style.background = '#FF4B4B';
+    document.getElementById('mic-btn').style.animation = '';
+    document.getElementById('mic-btn').innerHTML = '🎙️';
+    if (final_t.trim()) {
+      document.getElementById('mic-status').innerText = 'Got it! Send when ready.';
+      document.getElementById('send-btn').style.display = 'inline-block';
+    } else {
+      document.getElementById('mic-status').innerText = 'Tap to speak';
+    }
   };
-  rec.onerror=(e)=>{document.getElementById('rec-st').innerText='❌ Erro: '+e.error;};
+
+  rec.onerror = (e) => {
+    document.getElementById('mic-status').innerText = '❌ Error: ' + e.error;
+    isListening = false;
+  };
   rec.start();
 }
-function stopRec(){if(rec)rec.stop();}
+
+function stopRec() { clearTimeout(silenceTimer); if (rec) rec.stop(); }
+
+function sendTranscript() {
+  const text = document.getElementById('transcript-box').innerText.trim();
+  if (!text) return;
+  // Copy to clipboard so user can paste if needed, but also set streamlit input
+  navigator.clipboard.writeText(text).catch(() => {});
+  document.getElementById('mic-status').innerText = '✅ Copied! Paste below if needed.';
+  document.getElementById('send-btn').style.display = 'none';
+  // Try to find streamlit text area and set value
+  const areas = window.parent.document.querySelectorAll('textarea');
+  for (const area of areas) {
+    if (area.placeholder && area.placeholder.includes('transcri')) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+      nativeInputValueSetter.call(area, text);
+      area.dispatchEvent(new Event('input', { bubbles: true }));
+      break;
+    }
+  }
+}
 </script>
+<style>
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,75,75,.5); }
+  50% { box-shadow: 0 0 0 16px rgba(255,75,75,0); }
+}
+</style>
 """
 
 # ─────────────────────────────────────────────────────────────────
 # SESSION STATE
 # ─────────────────────────────────────────────────────────────────
-for k,v in {
-    "api_key":"","yt_api_key":"","conversation":[],"xp":0,"streak":0,
-    "fc_index":0,"fc_show_answer":False,"flashcard_decks":None,
-    "yt_transcript":[],"yt_video_id":"","yt_video_title":"",
-    "tts_enabled":True,"weekly_videos":[],"weekly_generated_date":"",
-    "selected_video":None,
-}.items():
-    if k not in st.session_state: st.session_state[k]=v
+defaults = {
+    "api_key": "",
+    "yt_api_key": "",
+    "page": "home",
+    # video context
+    "yt_video_id": "",
+    "yt_video_title": "",
+    "yt_transcript": [],
+    # conversations
+    "conversation": [],
+    "conv_video_id": "",   # which video the conversation is about
+    # weekly
+    "weekly_videos": [],
+    "weekly_generated_date": "",
+    # flashcards
+    "flashcard_decks": None,
+    "fc_index": 0,
+    "fc_show_answer": False,
+    # metrics
+    "metric_conversations": 0,
+    "metric_minutes": 0,
+    "metric_flashcards_reviewed": 0,
+    "metric_videos_studied": set(),
+    "conv_start_time": None,
+}
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 # ─────────────────────────────────────────────────────────────────
 # CLAUDE API
 # ─────────────────────────────────────────────────────────────────
-def ask_claude(prompt,max_tokens=1000):
+def ask_claude(prompt, max_tokens=1000):
     try:
-        c=anthropic.Anthropic(api_key=st.session_state.api_key)
-        m=c.messages.create(model="claude-sonnet-4-20250514",max_tokens=max_tokens,
-                             messages=[{"role":"user","content":prompt}])
+        c = anthropic.Anthropic(api_key=st.session_state.api_key)
+        m = c.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=max_tokens,
+            messages=[{"role": "user", "content": prompt}]
+        )
         return m.content[0].text
-    except anthropic.AuthenticationError: st.error("❌ API Key Claude inválida.")
-    except anthropic.RateLimitError: st.error("⚠️ Rate limit. Aguarde.")
-    except Exception as e: st.error(f"Erro Claude: {e}")
+    except anthropic.AuthenticationError:
+        st.error("❌ Invalid Claude API Key.")
+    except anthropic.RateLimitError:
+        st.error("⚠️ Rate limit. Please wait.")
+    except Exception as e:
+        st.error(f"Claude error: {e}")
     return ""
 
-def ask_claude_chat(messages,system,max_tokens=800):
+def ask_claude_chat(messages, system, max_tokens=800):
     try:
-        c=anthropic.Anthropic(api_key=st.session_state.api_key)
-        m=c.messages.create(model="claude-sonnet-4-20250514",max_tokens=max_tokens,
-                             system=system,messages=messages)
+        c = anthropic.Anthropic(api_key=st.session_state.api_key)
+        m = c.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=max_tokens,
+            system=system,
+            messages=messages
+        )
         return m.content[0].text
-    except anthropic.AuthenticationError: st.error("❌ API Key Claude inválida.")
-    except anthropic.RateLimitError: st.error("⚠️ Rate limit. Aguarde.")
-    except Exception as e: st.error(f"Erro Claude: {e}")
+    except anthropic.AuthenticationError:
+        st.error("❌ Invalid Claude API Key.")
+    except anthropic.RateLimitError:
+        st.error("⚠️ Rate limit. Please wait.")
+    except Exception as e:
+        st.error(f"Claude error: {e}")
     return ""
 
 # ─────────────────────────────────────────────────────────────────
 # YOUTUBE HELPERS
 # ─────────────────────────────────────────────────────────────────
 def extract_video_id(url):
-    for p in [r'v=([^&\s]+)',r'youtu\.be/([^?\s]+)',r'embed/([^?\s]+)']:
-        m=re.search(p,url)
+    for p in [r'v=([^&\s]+)', r'youtu\.be/([^?\s]+)', r'embed/([^?\s]+)']:
+        m = re.search(p, url)
         if m: return m.group(1)
     return ""
 
 def get_transcript(video_id):
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
-        ytt=YouTubeTranscriptApi()
-        t=ytt.fetch(video_id)
-        return [{"text":s.text,"start":s.start,"duration":s.duration} for s in t]
+        ytt = YouTubeTranscriptApi()
+        t = ytt.fetch(video_id)
+        return [{"text": s.text, "start": s.start, "duration": s.duration} for s in t]
     except Exception:
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
-            ytt=YouTubeTranscriptApi()
+            ytt = YouTubeTranscriptApi()
             for t in ytt.list(video_id):
-                f=t.fetch()
-                return [{"text":s.text,"start":s.start,"duration":s.duration} for s in f]
+                f = t.fetch()
+                return [{"text": s.text, "start": s.start, "duration": s.duration} for s in f]
         except Exception as e2:
-            st.error(f"Sem legendas disponíveis: {e2}")
+            st.error(f"No subtitles available: {e2}")
             return []
 
-def transcript_to_segments(transcript,chunk=4):
-    segs=[]
-    for i in range(0,len(transcript),chunk):
-        g=transcript[i:i+chunk]
-        segs.append({"text":" ".join(s["text"].replace("\n"," ") for s in g),"start":int(g[0]["start"])})
-    return segs
+def transcript_to_text(transcript, max_chars=3000):
+    full = " ".join(s["text"].replace("\n", " ") for s in transcript)
+    return full[:max_chars] + ("..." if len(full) > max_chars else "")
 
-def transcript_to_text(transcript,max_chars=2500):
-    full=" ".join(s["text"].replace("\n"," ") for s in transcript)
-    return full[:max_chars]+("..." if len(full)>max_chars else "")
-
-def search_youtube(query,max_results=6,yt_key=None):
-    """Search YouTube using Data API v3."""
-    if not yt_key:
-        return []
+def search_youtube(query, max_results=6, yt_key=None):
+    if not yt_key: return []
     try:
         from googleapiclient.discovery import build
-        yt=build("youtube","v3",developerKey=yt_key)
-        res=yt.search().list(
-            q=query,part="snippet",type="video",
-            maxResults=max_results,
-            videoCaptionKey="closedCaption",  # prefer captioned
-            relevanceLanguage="en",
-            safeSearch="strict",
+        yt = build("youtube", "v3", developerKey=yt_key)
+        res = yt.search().list(
+            q=query, part="snippet", type="video",
+            maxResults=max_results, relevanceLanguage="en", safeSearch="strict"
         ).execute()
-        videos=[]
-        for item in res.get("items",[]):
-            vid=item["id"]["videoId"]
-            snip=item["snippet"]
+        videos = []
+        for item in res.get("items", []):
+            vid = item["id"]["videoId"]
+            snip = item["snippet"]
             videos.append({
-                "id":vid,
-                "title":snip["title"],
-                "channel":snip["channelTitle"],
-                "description":snip["description"][:120],
-                "thumbnail":snip["thumbnails"]["medium"]["url"],
-                "url":f"https://www.youtube.com/watch?v={vid}",
+                "id": vid,
+                "title": snip["title"],
+                "channel": snip["channelTitle"],
+                "thumbnail": snip["thumbnails"]["medium"]["url"],
+                "url": f"https://www.youtube.com/watch?v={vid}",
             })
         return videos
     except Exception as e:
-        st.warning(f"Busca YouTube falhou: {e}")
+        st.warning(f"YouTube search failed: {e}")
         return []
 
-def get_video_details(video_ids, yt_key):
-    """Get duration and stats for videos."""
-    if not yt_key or not video_ids: return {}
-    try:
-        from googleapiclient.discovery import build
-        yt=build("youtube","v3",developerKey=yt_key)
-        res=yt.videos().list(part="contentDetails,statistics",id=",".join(video_ids)).execute()
-        details={}
-        for item in res.get("items",[]):
-            dur=item["contentDetails"]["duration"]  # ISO 8601 e.g. PT4M30S
-            m=re.search(r'PT(?:(\d+)M)?(?:(\d+)S)?',dur)
-            mins=int(m.group(1) or 0) if m else 0
-            secs=int(m.group(2) or 0) if m else 0
-            details[item["id"]]={"duration":f"{mins}:{secs:02d}","views":int(item.get("statistics",{}).get("viewCount",0))}
-        return details
-    except: return {}
-
 # ─────────────────────────────────────────────────────────────────
-# CURATED VIDEO LIST (fallback when no YouTube API key)
+# CURATED VIDEOS
 # ─────────────────────────────────────────────────────────────────
 CURATED_VIDEOS = [
-    # TED Talks
-    {"id":"_ZBKX-6Gz6A","title":"How language shapes the way we think","channel":"TED","thumbnail":"https://img.youtube.com/vi/_ZBKX-6Gz6A/mqdefault.jpg","level":"Intermediário","type":"TED Talk","duration":"14:03"},
-    {"id":"8S0FDjFBj8o","title":"The linguistic genius of babies","channel":"TED","thumbnail":"https://img.youtube.com/vi/8S0FDjFBj8o/mqdefault.jpg","level":"Intermediário","type":"TED Talk","duration":"10:18"},
-    {"id":"Unzc731iCUY","title":"Think like a coder — TED-Ed","channel":"TED-Ed","thumbnail":"https://img.youtube.com/vi/Unzc731iCUY/mqdefault.jpg","level":"Básico","type":"TED-Ed","duration":"5:37"},
-    {"id":"arj7oStGLkU","title":"TED's secret to great public speaking","channel":"TED","thumbnail":"https://img.youtube.com/vi/arj7oStGLkU/mqdefault.jpg","level":"Intermediário","type":"TED Talk","duration":"7:35"},
-    {"id":"eIho2S0ZahI","title":"The power of introverts","channel":"TED","thumbnail":"https://img.youtube.com/vi/eIho2S0ZahI/mqdefault.jpg","level":"Avançado","type":"TED Talk","duration":"19:04"},
-    # BBC / English Learning
-    {"id":"4bFYmMqq_Hs","title":"6 Minute English — Technology","channel":"BBC Learning English","thumbnail":"https://img.youtube.com/vi/4bFYmMqq_Hs/mqdefault.jpg","level":"Básico","type":"BBC Learning","duration":"6:00"},
-    {"id":"YsA3PK8bQd8","title":"English at Work — Job interview","channel":"BBC Learning English","thumbnail":"https://img.youtube.com/vi/YsA3PK8bQd8/mqdefault.jpg","level":"Intermediário","type":"BBC Learning","duration":"5:48"},
-    # Vlogs / day-to-day
-    {"id":"BMukniszEiA","title":"A day in the life of a New Yorker","channel":"Nathaniel Drew","thumbnail":"https://img.youtube.com/vi/BMukniszEiA/mqdefault.jpg","level":"Intermediário","type":"Vlog","duration":"11:24"},
-    {"id":"H14bBuluwB8","title":"How I learned English fluently","channel":"Nathaniel Drew","thumbnail":"https://img.youtube.com/vi/H14bBuluwB8/mqdefault.jpg","level":"Básico","type":"Vlog","duration":"9:41"},
-    # Crash Course / Educational
-    {"id":"fmaG9EAZe90","title":"How to argue — Philosophical reasoning","channel":"Crash Course","thumbnail":"https://img.youtube.com/vi/fmaG9EAZe90/mqdefault.jpg","level":"Avançado","type":"Educacional","duration":"9:52"},
-    {"id":"NiECCdXCPeE","title":"The science of sleep","channel":"TED-Ed","thumbnail":"https://img.youtube.com/vi/NiECCdXCPeE/mqdefault.jpg","level":"Intermediário","type":"TED-Ed","duration":"4:42"},
-    {"id":"GK_vRtHJZu4","title":"Why do we dream?","channel":"TED-Ed","thumbnail":"https://img.youtube.com/vi/GK_vRtHJZu4/mqdefault.jpg","level":"Básico","type":"TED-Ed","duration":"5:46"},
+    {"id": "_ZBKX-6Gz6A", "title": "How language shapes the way we think", "channel": "TED", "level": "Intermediate", "type": "TED Talk", "duration": "14:03"},
+    {"id": "8S0FDjFBj8o", "title": "The linguistic genius of babies", "channel": "TED", "level": "Intermediate", "type": "TED Talk", "duration": "10:18"},
+    {"id": "Unzc731iCUY", "title": "Think like a coder", "channel": "TED-Ed", "level": "Beginner", "type": "TED-Ed", "duration": "5:37"},
+    {"id": "arj7oStGLkU", "title": "TED's secret to great public speaking", "channel": "TED", "level": "Intermediate", "type": "TED Talk", "duration": "7:35"},
+    {"id": "eIho2S0ZahI", "title": "The power of introverts", "channel": "TED", "level": "Advanced", "type": "TED Talk", "duration": "19:04"},
+    {"id": "4bFYmMqq_Hs", "title": "6 Minute English — Technology", "channel": "BBC Learning English", "level": "Beginner", "type": "BBC Learning", "duration": "6:00"},
+    {"id": "YsA3PK8bQd8", "title": "English at Work — Job interview", "channel": "BBC Learning English", "level": "Intermediate", "type": "BBC Learning", "duration": "5:48"},
+    {"id": "BMukniszEiA", "title": "A day in the life of a New Yorker", "channel": "Nathaniel Drew", "level": "Intermediate", "type": "Vlog", "duration": "11:24"},
+    {"id": "H14bBuluwB8", "title": "How I learned English fluently", "channel": "Nathaniel Drew", "level": "Beginner", "type": "Vlog", "duration": "9:41"},
+    {"id": "NiECCdXCPeE", "title": "The science of sleep", "channel": "TED-Ed", "level": "Intermediate", "type": "TED-Ed", "duration": "4:42"},
+    {"id": "GK_vRtHJZu4", "title": "Why do we dream?", "channel": "TED-Ed", "level": "Beginner", "type": "TED-Ed", "duration": "5:46"},
+    {"id": "fmaG9EAZe90", "title": "How to argue — Philosophical reasoning", "channel": "Crash Course", "level": "Advanced", "type": "Educational", "duration": "9:52"},
 ]
 
-SEARCH_PRESETS = {
-    "🎤 TED Talks intermediário": "TED talk English learning intermediate subtitles",
-    "📺 BBC Learning English": "BBC Learning English 6 minute 2024",
-    "🎬 Movie scenes English": "famous movie scenes English subtitles learning",
-    "📰 News English simples": "VOA Learning English news slow 2024",
-    "🧠 Ciência em inglês": "TED-Ed science English subtitles",
-    "💼 Business English": "business English professional communication BBC",
-    "🌍 Cultura americana": "American culture daily life English vlog",
-    "🎭 Comédia / sitcom": "Friends English learning scene subtitles",
-}
-
-# Weekly suggestion logic
 def get_week_key():
-    today=datetime.date.today()
+    today = datetime.date.today()
     return f"{today.year}-W{today.isocalendar()[1]}"
 
 def generate_weekly_curated():
-    """Pick 4 varied curated videos for this week."""
-    random.seed(int(get_week_key().replace("-W","")))
-    types=["TED Talk","TED-Ed","BBC Learning","Vlog","Educacional"]
-    selected=[]
-    used_types=set()
-    pool=CURATED_VIDEOS.copy()
+    random.seed(int(get_week_key().replace("-W", "")))
+    pool = CURATED_VIDEOS.copy()
     random.shuffle(pool)
-    for v in pool:
-        if v["type"] not in used_types or len(selected)<4:
-            selected.append(v)
-            used_types.add(v["type"])
-            if len(selected)==4: break
-    return selected
+    return pool[:4]
 
 # ─────────────────────────────────────────────────────────────────
-# DATA: scenes, personas, flashcards
+# FLASHCARDS
 # ─────────────────────────────────────────────────────────────────
-SAMPLE_SCENES = {
-    "🦁 Rei Leão — 'Remember who you are'": {"en":"You have forgotten who you are and so have forgotten me. Look inside yourself, Simba. You are more than what you have become. You must take your place in the Circle of Life.","pt":"Você esqueceu quem você é e, por isso, me esqueceu também. Olhe dentro de si mesmo, Simba.","vocab":["forgotten","inside yourself","Circle of Life"],"level":"Intermediário","tips":"Contrações: 'you have'→'you've'. Fale grave e pausado."},
-    "🕷️ Homem-Aranha — 'Great power'": {"en":"With great power comes great responsibility. This is my gift, my curse. Who am I? I'm Spider-Man.","pt":"Com grande poder vem grande responsabilidade. Esse é meu dom, minha maldição.","vocab":["responsibility","gift","curse"],"level":"Básico","tips":"Frase rítmica — repita 5x acelerando."},
-    "🤖 Interestelar — Cooper": {"en":"We used to look up at the sky and wonder at our place in the stars. Now we just look down and worry about our place in the dirt.","pt":"Costumávamos olhar para o céu e nos perguntar sobre nosso lugar nas estrelas.","vocab":["wonder","place in the stars","dirt"],"level":"Avançado","tips":"Ritmo melancólico e pausado. Bom para entonação."},
-    "🧠 Breaking Bad — 'I am the danger'": {"en":"I am not in danger, Skyler. I am the danger. A guy opens his door and gets shot, and you think that of me? No. I am the one who knocks.","pt":"Eu não estou em perigo, Skyler. Eu sou o perigo.","vocab":["danger","the one who knocks"],"level":"Intermediário","tips":"Pause antes de 'I am the danger'. Fale devagar."},
-}
-
-PERSONAS = {
-    "🎓 Prof. Alex — Paciente":{"desc":"Didático, corrige com calma.","system":"You are Professor Alex, a patient English teacher for Brazilian intermediate learners. Correct errors gently. Keep responses concise (3-5 sentences).","voice_rate":0.80},
-    "🎬 Sam — Cinéfilo":{"desc":"Usa referências de filmes, casual e divertido.","system":"You are Sam, a movie fan teaching English through pop culture. Reference movies naturally. Max 4 sentences.","voice_rate":0.90},
-    "💼 Jordan — Business":{"desc":"Inglês profissional e corporativo.","system":"You are Jordan, a business English coach. Focus on professional vocabulary. Keep responses practical.","voice_rate":0.85},
-    "🌍 Maya — Conversação livre":{"desc":"Papo informal como uma amiga nativa.","system":"You are Maya, a native English speaker in casual conversation. Be natural and friendly. Model correct English subtly.","voice_rate":0.95},
-}
-
-TOPIC_STARTERS = {
-    "🎬 Filmes e séries":"Let's talk about movies! What's the last thing you watched?",
-    "✈️ Viagens":"Have you ever traveled abroad, or somewhere you'd love to visit?",
-    "🍕 Comida":"What's your favorite meal? Do you like trying new cuisines?",
-    "💼 Trabalho":"Tell me about your work. What are your career goals?",
-    "🎮 Hobbies":"What do you do in your free time?",
-}
-
 DEFAULT_DECKS = {
-    "🎬 Cinema & Séries":[
-        {"en":"plot twist","pt":"reviravolta na trama","example":"The plot twist shocked everyone.","level":0,"next_review":""},
-        {"en":"binge-watch","pt":"maratonar séries","example":"I binge-watched the whole season.","level":0,"next_review":""},
-        {"en":"cliffhanger","pt":"final suspenso","example":"The finale ended on a cliffhanger!","level":0,"next_review":""},
-        {"en":"spoiler","pt":"revelar o enredo","example":"Don't spoil the movie!","level":0,"next_review":""},
-        {"en":"blockbuster","pt":"grande sucesso de bilheteria","example":"Avengers is a massive blockbuster.","level":0,"next_review":""},
-        {"en":"sequel","pt":"continuação","example":"The sequel was even better.","level":0,"next_review":""},
-    ],
-    "💼 Dia a Dia":[
-        {"en":"hang out","pt":"sair com amigos","example":"Want to hang out this weekend?","level":0,"next_review":""},
-        {"en":"figure out","pt":"descobrir/resolver","example":"I can't figure out this problem.","level":0,"next_review":""},
-        {"en":"give up","pt":"desistir","example":"Don't give up on your dreams!","level":0,"next_review":""},
-        {"en":"deal with","pt":"lidar com","example":"I have to deal with a lot of stress.","level":0,"next_review":""},
-        {"en":"catch up","pt":"colocar o papo em dia","example":"Let's catch up over coffee!","level":0,"next_review":""},
-    ],
-    "🧠 Gramática":[
-        {"en":"I used to + verb","pt":"Eu costumava (passado habitual)","example":"I used to watch cartoons every morning.","level":0,"next_review":""},
-        {"en":"Have you ever...?","pt":"Você já...? (present perfect)","example":"Have you ever been to New York?","level":0,"next_review":""},
-        {"en":"I wish + past","pt":"Queria que... (desejo irreal)","example":"I wish I spoke perfect English.","level":0,"next_review":""},
+    "🎬 From Videos": [],
+    "💼 Daily Life": [
+        {"en": "hang out", "pt": "sair com amigos", "example": "Want to hang out this weekend?", "level": 0, "next_review": ""},
+        {"en": "figure out", "pt": "descobrir/resolver", "example": "I can't figure out this problem.", "level": 0, "next_review": ""},
+        {"en": "give up", "pt": "desistir", "example": "Don't give up on your dreams!", "level": 0, "next_review": ""},
+        {"en": "deal with", "pt": "lidar com", "example": "I have to deal with a lot of stress.", "level": 0, "next_review": ""},
+        {"en": "catch up", "pt": "colocar o papo em dia", "example": "Let's catch up over coffee!", "level": 0, "next_review": ""},
     ],
 }
-INTERVAL_DAYS=[0,1,3,7,14,30]
+INTERVAL_DAYS = [0, 1, 3, 7, 14, 30]
 
 if st.session_state.flashcard_decks is None:
-    st.session_state.flashcard_decks={k:[dict(c) for c in v] for k,v in DEFAULT_DECKS.items()}
+    st.session_state.flashcard_decks = {k: [dict(c) for c in v] for k, v in DEFAULT_DECKS.items()}
 
 def get_due(deck):
-    today=datetime.date.today().isoformat()
-    return [i for i,c in enumerate(deck) if not c.get("next_review") or c["next_review"]<=today]
+    today = datetime.date.today().isoformat()
+    return [i for i, c in enumerate(deck) if not c.get("next_review") or c["next_review"] <= today]
 
-def update_review(deck,idx,q):
-    lvl=deck[idx].get("level",0)
-    lvl=min(lvl+1,5) if q>=3 else max(lvl-1,0)
-    deck[idx]["level"]=lvl
-    deck[idx]["next_review"]=(datetime.date.today()+datetime.timedelta(days=INTERVAL_DAYS[lvl])).isoformat()
+def update_review(deck, idx, q):
+    lvl = deck[idx].get("level", 0)
+    lvl = min(lvl + 1, 5) if q >= 3 else max(lvl - 1, 0)
+    deck[idx]["level"] = lvl
+    deck[idx]["next_review"] = (datetime.date.today() + datetime.timedelta(days=INTERVAL_DAYS[lvl])).isoformat()
     return deck
 
-# ─────────────────────────────────────────────────────────────────
-# SIDEBAR
-# ─────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("<div style='font-family:Syne,sans-serif;font-size:1.6rem;font-weight:800;color:#E8FF47;padding:1rem 0 .3rem;'>🎬 FluentAI</div>", unsafe_allow_html=True)
-    st.markdown("<div style='color:#7A7A8A;font-size:.85rem;margin-bottom:1rem;'>Inglês com IA + Cinema</div>", unsafe_allow_html=True)
-    st.divider()
-    c1,c2=st.columns(2)
-    with c1: st.metric("⚡ XP",st.session_state.xp)
-    with c2: st.metric("🔥 Streak",f"{st.session_state.streak}d")
-    st.divider()
-    st.markdown("**🔑 API Keys**")
-    api_in=st.text_input("Anthropic Key",value=st.session_state.api_key,type="password",placeholder="sk-ant-...",label_visibility="collapsed")
-    if api_in: st.session_state.api_key=api_in; st.success("✓ Claude OK")
-    yt_in=st.text_input("YouTube Data API Key (opcional)",value=st.session_state.yt_api_key,type="password",placeholder="AIza...",label_visibility="collapsed")
-    if yt_in: st.session_state.yt_api_key=yt_in; st.success("✓ YouTube API OK")
-    st.markdown("<div class='muted-text'>Sem a YouTube API key, usamos uma lista curada de vídeos incríveis.</div>",unsafe_allow_html=True)
-    st.divider()
-    st.session_state.tts_enabled=st.toggle("🔊 Professor fala (TTS)",value=st.session_state.tts_enabled)
-    st.markdown("<div class='muted-text'>Requer Chrome para melhor resultado.</div>",unsafe_allow_html=True)
+def generate_flashcards_from_video(video_title, transcript_text):
+    prompt = f"""You are an English teacher for Brazilian learners.
+Based on this video transcript, extract 6 useful English expressions, phrasal verbs, or vocabulary.
+Video: "{video_title}"
+Transcript excerpt: "{transcript_text[:1500]}"
+
+Return ONLY valid JSON array:
+[{{"en":"expression","pt":"tradução em português","example":"example sentence from the video context."}}]"""
+    r = ask_claude(prompt, max_tokens=600)
+    if r:
+        try:
+            m = re.search(r'\[.*\]', r, re.DOTALL)
+            if m:
+                cards = json.loads(m.group())
+                return [{"en": c["en"], "pt": c["pt"], "example": c.get("example", ""), "level": 0, "next_review": ""} for c in cards if "en" in c and "pt" in c]
+        except Exception:
+            pass
+    return []
 
 # ─────────────────────────────────────────────────────────────────
-# HEADER
+# NAVIGATION — SVG icons, no emoji
 # ─────────────────────────────────────────────────────────────────
-st.markdown("""
-<div style='padding:1.5rem 0 .5rem;'>
-  <h1 style='font-size:2rem;margin:0;'>Inglês com <span style='color:#E8FF47;'>IA + Cinema</span></h1>
-  <p style='color:#7A7A8A;margin-top:.3rem;'>Sugestões semanais, YouTube, voz e flashcards</p>
-</div>""", unsafe_allow_html=True)
+SVG = {
+    "home": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    "videos": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="15" height="14" rx="2"/><path d="m17 8 5-3v14l-5-3"/></svg>',
+    "talk": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>',
+    "cards": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>',
+    "settings": '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+}
 
-tab_weekly,tab_search,tab_shadow,tab_conv,tab_flash,tab_prog = st.tabs([
-    "🌟 Semana","🔍 Buscar","🎬 Shadowing","🤖 Conversação","🃏 Flashcards","📊 Progresso"
-])
+NAV_ITEMS = [
+    ("home", "Home"),
+    ("videos", "Videos"),
+    ("talk", "Talk"),
+    ("cards", "Cards"),
+    ("settings", "Settings"),
+]
+
+# Handle URL page param
+query_params = st.query_params
+if "page" in query_params:
+    st.session_state.page = query_params["page"]
+
+page = st.session_state.page
+
+nav_html = '<div class="bottom-nav">'
+for key, label in NAV_ITEMS:
+    active = "active" if page == key else ""
+    nav_html += f'<a href="?page={key}" class="nav-item {active}" style="text-decoration:none;">{SVG[key]}<span>{label}</span></a>'
+nav_html += '</div>'
+st.markdown(nav_html, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════
-# TAB 1 — SUGESTÕES SEMANAIS
+# PAGE: HOME
 # ═══════════════════════════════════════════════════════════════
-with tab_weekly:
-    st.markdown("<h2>🌟 Vídeos da Semana</h2>",unsafe_allow_html=True)
+if page == "home":
+    st.markdown("<div style='padding:1.5rem 0 .5rem;'><h1>Good day! 👋</h1><p style='color:#8A8A9A;margin-top:.2rem;'>Practice English with AI-powered conversations</p></div>", unsafe_allow_html=True)
 
-    week=get_week_key()
-    st.markdown(f"<p class='muted-text'>Semana {week} — renovado automaticamente toda segunda-feira</p>",unsafe_allow_html=True)
+    # API key nudge
+    if not st.session_state.api_key:
+        st.markdown("<a href='?page=settings' style='text-decoration:none;'><div class='card-coral' style='cursor:pointer;'><b style='color:#FF4B4B;'>🔑 Add your API Key</b><br><span style='color:#8A8A9A;font-size:.9rem;'>Tap here to go to Settings and paste your Anthropic key.</span></div></a>", unsafe_allow_html=True)
 
-    # Generate/cache weekly list
-    if not st.session_state.weekly_videos or st.session_state.weekly_generated_date!=week:
-        with st.spinner("Selecionando vídeos da semana..."):
+    # Weekly pick
+    week = get_week_key()
+    if not st.session_state.weekly_videos or st.session_state.weekly_generated_date != week:
+        with st.spinner("Selecting this week's videos..."):
             if st.session_state.yt_api_key:
-                queries=["TED talk english intermediate 2024","BBC learning english 2024 new","English conversation practice intermediate 2024","english vlog natural speech 2024"]
-                all_vids=[]
+                queries = ["TED talk english intermediate 2024", "BBC learning english 2024"]
+                all_vids = []
                 for q in queries:
-                    results=search_youtube(q,max_results=2,yt_key=st.session_state.yt_api_key)
-                    all_vids.extend(results)
-                # Deduplicate
-                seen=set()
-                unique=[]
+                    all_vids.extend(search_youtube(q, max_results=2, yt_key=st.session_state.yt_api_key))
+                seen = set(); unique = []
                 for v in all_vids:
                     if v["id"] not in seen:
-                        seen.add(v["id"])
-                        unique.append(v)
-                st.session_state.weekly_videos=unique[:4] if unique else generate_weekly_curated()
+                        seen.add(v["id"]); unique.append(v)
+                st.session_state.weekly_videos = unique[:4] if unique else generate_weekly_curated()
             else:
-                st.session_state.weekly_videos=generate_weekly_curated()
-            st.session_state.weekly_generated_date=week
+                st.session_state.weekly_videos = generate_weekly_curated()
+            st.session_state.weekly_generated_date = week
 
-    videos=st.session_state.weekly_videos
-
-    if not videos:
-        st.info("Nenhum vídeo disponível. Verifique as API keys.")
-    else:
-        # Render video cards in 2 columns
-        cols=st.columns(2)
-        for i,v in enumerate(videos):
-            with cols[i%2]:
-                lvl=v.get("level","Intermediário")
-                vtype=v.get("type","")
-                dur=v.get("duration","")
-                badge_cls={"Básico":"badge-green","Intermediário":"badge-yellow","Avançado":"badge-red"}.get(lvl,"badge-yellow")
-                type_cls={"TED Talk":"badge-purple","TED-Ed":"badge-purple","BBC Learning":"badge-green","Vlog":"badge-yellow","Educacional":"badge-blue"}.get(vtype,"badge-yellow")
-
-                st.markdown(f"""
-                <div class='vid-card' style='margin-bottom:1rem;'>
-                  <img class='vid-thumb' src='https://img.youtube.com/vi/{v["id"]}/mqdefault.jpg' onerror="this.src='https://img.youtube.com/vi/{v["id"]}/default.jpg'"/>
-                  <div class='vid-meta'>
-                    <div style='margin-bottom:.5rem;'>
-                      <span class='badge {badge_cls}'>{lvl}</span>
-                      {f'<span class="badge {type_cls}" style="margin-left:4px;">{vtype}</span>' if vtype else ''}
-                      {f'<span class="badge" style="background:#ffffff11;color:#7A7A8A;border:1px solid #2A2A35;margin-left:4px;">⏱ {dur}</span>' if dur else ''}
-                    </div>
-                    <div style='font-weight:600;font-size:.95rem;color:#F0EFE9;margin-bottom:.3rem;line-height:1.4;'>{v["title"][:70]}{"..." if len(v["title"])>70 else ""}</div>
-                    <div style='font-size:.8rem;color:#7A7A8A;'>{v.get("channel","")}</div>
-                  </div>
-                </div>""", unsafe_allow_html=True)
-
-                btn_col1,btn_col2=st.columns(2)
-                with btn_col1:
-                    if st.button("▶ Estudar este vídeo",key=f"study_{v['id']}_{i}",use_container_width=True):
-                        st.session_state.yt_video_id=v["id"]
-                        st.session_state.yt_video_title=v["title"]
-                        with st.spinner("Carregando legendas..."):
-                            t=get_transcript(v["id"])
-                            if t:
-                                st.session_state.yt_transcript=t
-                                st.success("✅ Pronto! Vá para a aba 🔍 Buscar")
-                            else:
-                                st.warning("Sem legendas. Tente outro vídeo.")
-                with btn_col2:
-                    vid_id = v['id']
-                    st.markdown(f"<a href='https://www.youtube.com/watch?v={vid_id}' target='_blank'><button style='background:#1E1E24;color:#F0EFE9;border:1px solid #2A2A35;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:.85rem;width:100%;'>🔗 YouTube</button></a>",unsafe_allow_html=True)
-
-        st.markdown("---")
-        col_ref,col_ai=st.columns([1,2])
-        with col_ref:
-            if st.button("🔄 Atualizar sugestões",use_container_width=True):
-                st.session_state.weekly_videos=[]
-                st.session_state.weekly_generated_date=""
-                st.rerun()
-        with col_ai:
-            if st.button("🤖 Pedir sugestão personalizada ao Claude",use_container_width=True):
-                if not st.session_state.api_key:
-                    st.error("Insira sua API Key do Claude!")
+    st.markdown("<h2 style='margin-bottom:.5rem;'>This week's picks</h2>", unsafe_allow_html=True)
+    featured = st.session_state.weekly_videos[0] if st.session_state.weekly_videos else None
+    if featured:
+        lvl = featured.get("level", "Intermediate")
+        badge_cls = {"Beginner": "badge-green", "Intermediate": "badge-yellow", "Advanced": "badge-red"}.get(lvl, "badge-yellow")
+        st.markdown(f"""
+        <div class='vid-card'>
+          <img class='vid-thumb' src='https://img.youtube.com/vi/{featured["id"]}/mqdefault.jpg'/>
+          <div class='vid-meta'>
+            <span class='badge {badge_cls}'>{lvl}</span>
+            <div style='font-weight:700;font-size:1rem;color:#1A1A2E;margin:.4rem 0 .2rem;line-height:1.4;'>{featured["title"][:65]}{"..." if len(featured["title"])>65 else ""}</div>
+            <div style='font-size:.8rem;color:#8A8A9A;'>{featured.get("channel","")} {f"· {featured.get('duration','')}" if featured.get('duration') else ""}</div>
+          </div>
+        </div>""", unsafe_allow_html=True)
+        if st.button("▶ Study this video", use_container_width=True, key="home_study"):
+            with st.spinner("Loading transcript..."):
+                t = get_transcript(featured["id"])
+                if t:
+                    st.session_state.yt_video_id = featured["id"]
+                    st.session_state.yt_video_title = featured["title"]
+                    st.session_state.yt_transcript = t
+                    st.session_state.metric_videos_studied.add(featured["id"])
+                    st.session_state.page = "talk"
+                    st.session_state.conv_video_id = featured["id"]
+                    st.session_state.conversation = []
+                    st.query_params["page"] = "talk"
+                    st.rerun()
                 else:
-                    with st.spinner("Claude está selecionando vídeos para você..."):
-                        suggestion=ask_claude("""Você é um professor de inglês especializado para brasileiros de nível intermediário.
-Sugira 3 vídeos do YouTube em inglês para praticar shadowing. Para cada um forneça:
-- Título exato do vídeo
-- Canal
-- Por que é bom para shadowing
-- Nível: Básico/Intermediário/Avançado
-- Uma frase de exemplo do vídeo para praticar
+                    st.warning("No subtitles available for this video.")
 
-Foque em: TED Talks, BBC Learning English, vlogs autênticos.
-Responda em português, de forma animada e motivadora.""", max_tokens=600)
-                        if suggestion:
-                            st.markdown(f"""<div class='card-blue'><b style='color:#47CFFF;'>🤖 Sugestão do Professor IA</b><br><br>{suggestion}</div>""",unsafe_allow_html=True)
+    # Rest of weekly videos
+    if len(st.session_state.weekly_videos) > 1:
+        st.markdown("<h3 style='margin:.8rem 0 .4rem;'>More this week</h3>", unsafe_allow_html=True)
+        for v in st.session_state.weekly_videos[1:]:
+            lvl = v.get("level", "Intermediate")
+            badge_cls = {"Beginner": "badge-green", "Intermediate": "badge-yellow", "Advanced": "badge-red"}.get(lvl, "badge-yellow")
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.markdown(f"<img src='https://img.youtube.com/vi/{v['id']}/default.jpg' style='width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;'/>", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"<div style='font-weight:600;font-size:.9rem;color:#1A1A2E;line-height:1.4;'>{v['title'][:55]}{'...' if len(v['title'])>55 else ''}</div><div style='font-size:.78rem;color:#8A8A9A;margin-top:2px;'>{v.get('channel','')} · <span class='badge {badge_cls}' style='font-size:.7rem;'>{lvl}</span></div>", unsafe_allow_html=True)
+                if st.button("Study", key=f"home_v_{v['id']}", use_container_width=True):
+                    with st.spinner("Loading..."):
+                        t = get_transcript(v["id"])
+                        if t:
+                            st.session_state.yt_video_id = v["id"]
+                            st.session_state.yt_video_title = v["title"]
+                            st.session_state.yt_transcript = t
+                            st.session_state.metric_videos_studied.add(v["id"])
+                            st.session_state.page = "talk"
+                            st.session_state.conv_video_id = v["id"]
+                            st.session_state.conversation = []
+                            st.query_params["page"] = "talk"
+                            st.rerun()
+
+    st.markdown("<div style='margin-top:1rem;'>", unsafe_allow_html=True)
+    if st.button("🎙️ Start free conversation", use_container_width=True, key="home_free_talk"):
+        st.session_state.page = "talk"
+        st.session_state.conv_video_id = ""
+        st.session_state.conversation = []
+        st.query_params["page"] = "talk"
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════
-# TAB 2 — BUSCAR VÍDEOS
+# PAGE: VIDEOS
 # ═══════════════════════════════════════════════════════════════
-with tab_search:
-    st.markdown("<h2>🔍 Buscar & Carregar Vídeo</h2>",unsafe_allow_html=True)
+elif page == "videos":
+    st.markdown("<h1 style='padding-top:1.5rem;'>Videos</h1>", unsafe_allow_html=True)
 
-    search_mode=st.radio("Como quer encontrar o vídeo?",
-        ["🔎 Buscar no YouTube","📋 Escolher da lista curada","🔗 Colar link direto"],
-        horizontal=True)
+    search_mode = st.radio("", ["📋 Curated list", "🔎 Search YouTube", "🔗 Paste link"], horizontal=True, label_visibility="collapsed")
 
-    selected_vid_id=""
-    selected_vid_title=""
+    selected_vid_id = ""
+    selected_vid_title = ""
 
-    # ── MODE 1: YouTube Search ──
-    if search_mode=="🔎 Buscar no YouTube":
+    if search_mode == "🔎 Search YouTube":
         if not st.session_state.yt_api_key:
-            st.info("💡 Para busca ao vivo, adicione sua YouTube Data API Key na barra lateral. Por enquanto, use os temas abaixo ou cole um link.")
-
-        st.markdown("**Temas prontos:**")
-        preset_cols=st.columns(4)
-        for i,(label,query) in enumerate(SEARCH_PRESETS.items()):
-            with preset_cols[i%4]:
-                if st.button(label,key=f"preset_{i}",use_container_width=True):
-                    st.session_state["search_query"]=query
-
-        search_q=st.text_input("Ou busque livremente:",
-            value=st.session_state.get("search_query",""),
-            placeholder="Ex: TED talk habits English subtitles")
-
-        if st.button("🔍 Buscar",use_container_width=True) and search_q:
+            st.info("Add your YouTube API Key in Settings to enable live search.")
+        sq = st.text_input("Search:", placeholder="e.g. TED talk habits English")
+        if st.button("Search", use_container_width=True) and sq:
             if st.session_state.yt_api_key:
-                with st.spinner("Buscando no YouTube..."):
-                    results=search_youtube(search_q,max_results=6,yt_key=st.session_state.yt_api_key)
-                    if results:
-                        st.session_state["search_results"]=results
-                    else:
-                        st.warning("Nenhum resultado. Tente outra busca.")
+                with st.spinner("Searching..."):
+                    results = search_youtube(sq, max_results=6, yt_key=st.session_state.yt_api_key)
+                    st.session_state["search_results"] = results if results else []
             else:
-                # Filter curated by keyword
-                kw=search_q.lower()
-                filtered=[v for v in CURATED_VIDEOS if kw in v["title"].lower() or kw in v.get("type","").lower() or kw in v["channel"].lower()]
-                st.session_state["search_results"]=filtered if filtered else CURATED_VIDEOS[:6]
-                st.info("Mostrando da lista curada (sem YouTube API Key).")
+                kw = sq.lower()
+                filtered = [v for v in CURATED_VIDEOS if kw in v["title"].lower() or kw in v.get("type", "").lower()]
+                st.session_state["search_results"] = filtered if filtered else CURATED_VIDEOS[:6]
+                st.info("Showing curated list (no YouTube API Key).")
 
-        results=st.session_state.get("search_results",[])
-        if results:
-            st.markdown(f"**{len(results)} vídeos encontrados:**")
-            rcols=st.columns(3)
-            for i,v in enumerate(results):
-                with rcols[i%3]:
-                    dur=v.get("duration","")
-                    st.markdown(f"""
-                    <div class='vid-card' style='margin-bottom:.5rem;'>
-                      <img class='vid-thumb' src='https://img.youtube.com/vi/{v["id"]}/mqdefault.jpg'/>
-                      <div class='vid-meta'>
-                        <div style='font-size:.85rem;font-weight:600;color:#F0EFE9;line-height:1.3;'>{v["title"][:55]}{"..." if len(v["title"])>55 else ""}</div>
-                        <div style='font-size:.75rem;color:#7A7A8A;margin-top:3px;'>{v.get("channel","")} {f"· ⏱ {dur}" if dur else ""}</div>
-                      </div>
-                    </div>""",unsafe_allow_html=True)
-                    if st.button("▶ Estudar",key=f"sr_{v['id']}_{i}",use_container_width=True):
-                        selected_vid_id=v["id"]
-                        selected_vid_title=v["title"]
+        for v in st.session_state.get("search_results", []):
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.markdown(f"<img src='https://img.youtube.com/vi/{v['id']}/default.jpg' style='width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;'/>", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"<div style='font-weight:600;font-size:.9rem;'>{v['title'][:55]}{'...' if len(v['title'])>55 else ''}</div><div style='font-size:.78rem;color:#8A8A9A;'>{v.get('channel','')}</div>", unsafe_allow_html=True)
+                if st.button("▶ Study", key=f"sr_{v['id']}", use_container_width=True):
+                    selected_vid_id = v["id"]; selected_vid_title = v["title"]
 
-    # ── MODE 2: Curated List ──
-    elif search_mode=="📋 Escolher da lista curada":
-        st.markdown("**Selecione um vídeo da nossa lista:**")
-        lvl_filter=st.selectbox("Filtrar por nível:",["Todos","Básico","Intermediário","Avançado"])
-        type_filter=st.selectbox("Filtrar por tipo:",["Todos","TED Talk","TED-Ed","BBC Learning","Vlog","Educacional"])
+    elif search_mode == "🔗 Paste link":
+        yt_url = st.text_input("YouTube URL:", placeholder="https://www.youtube.com/watch?v=...")
+        if st.button("Load video", use_container_width=True) and yt_url.strip():
+            vid = extract_video_id(yt_url.strip())
+            if vid: selected_vid_id = vid; selected_vid_title = yt_url
+            else: st.error("Invalid URL.")
 
-        filtered_curated=[
+    else:  # Curated
+        lvl_filter = st.selectbox("Level:", ["All", "Beginner", "Intermediate", "Advanced"])
+        type_filter = st.selectbox("Type:", ["All", "TED Talk", "TED-Ed", "BBC Learning", "Vlog", "Educational"])
+        filtered = [
             v for v in CURATED_VIDEOS
-            if (lvl_filter=="Todos" or v.get("level")==lvl_filter)
-            and (type_filter=="Todos" or v.get("type")==type_filter)
+            if (lvl_filter == "All" or v.get("level") == lvl_filter)
+            and (type_filter == "All" or v.get("type") == type_filter)
         ]
+        for v in filtered:
+            lvl = v.get("level", "")
+            badge_cls = {"Beginner": "badge-green", "Intermediate": "badge-yellow", "Advanced": "badge-red"}.get(lvl, "badge-yellow")
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.markdown(f"<img src='https://img.youtube.com/vi/{v['id']}/default.jpg' style='width:100%;border-radius:10px;aspect-ratio:16/9;object-fit:cover;'/>", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"<div style='font-weight:600;font-size:.9rem;'>{v['title'][:55]}{'...' if len(v['title'])>55 else ''}</div><div style='font-size:.78rem;color:#8A8A9A;margin-top:2px;'>{v['channel']} · {v.get('duration','')} · <span class='badge {badge_cls}' style='font-size:.7rem;'>{lvl}</span></div>", unsafe_allow_html=True)
+                if st.button("▶ Study", key=f"cur_{v['id']}", use_container_width=True):
+                    selected_vid_id = v["id"]; selected_vid_title = v["title"]
 
-        cc=st.columns(3)
-        for i,v in enumerate(filtered_curated):
-            with cc[i%3]:
-                lvl=v.get("level","")
-                badge_cls={"Básico":"badge-green","Intermediário":"badge-yellow","Avançado":"badge-red"}.get(lvl,"badge-yellow")
-                st.markdown(f"""
-                <div class='vid-card'>
-                  <img class='vid-thumb' src='https://img.youtube.com/vi/{v["id"]}/mqdefault.jpg'/>
-                  <div class='vid-meta'>
-                    <span class='badge {badge_cls}'>{lvl}</span>
-                    <span class='badge badge-purple' style='margin-left:4px;'>{v.get("type","")}</span>
-                    <div style='font-size:.85rem;font-weight:600;color:#F0EFE9;margin-top:.4rem;line-height:1.3;'>{v["title"][:55]}{"..." if len(v["title"])>55 else ""}</div>
-                    <div style='font-size:.75rem;color:#7A7A8A;margin-top:3px;'>{v["channel"]} · ⏱ {v.get("duration","")}</div>
-                  </div>
-                </div>""",unsafe_allow_html=True)
-                if st.button("▶ Estudar",key=f"cur_{v['id']}_{i}",use_container_width=True):
-                    selected_vid_id=v["id"]
-                    selected_vid_title=v["title"]
-
-    # ── MODE 3: Direct Link ──
-    else:
-        yt_url=st.text_input("🔗 Cole o link do YouTube:",placeholder="https://www.youtube.com/watch?v=...")
-        if st.button("▶️ Carregar vídeo",use_container_width=True) and yt_url.strip():
-            vid=extract_video_id(yt_url.strip())
-            if vid:
-                selected_vid_id=vid
-                selected_vid_title=yt_url
-            else:
-                st.error("URL inválida.")
-
-    # ── LOAD SELECTED VIDEO ──
     if selected_vid_id:
-        with st.spinner("Carregando legendas..."):
-            t=get_transcript(selected_vid_id)
+        with st.spinner("Loading transcript..."):
+            t = get_transcript(selected_vid_id)
             if t:
-                st.session_state.yt_video_id=selected_vid_id
-                st.session_state.yt_video_title=selected_vid_title
-                st.session_state.yt_transcript=t
-                st.success(f"✅ '{selected_vid_title[:50]}' carregado — {len(t)} segmentos de legenda!")
+                st.session_state.yt_video_id = selected_vid_id
+                st.session_state.yt_video_title = selected_vid_title
+                st.session_state.yt_transcript = t
+                st.session_state.metric_videos_studied.add(selected_vid_id)
+                st.session_state.page = "talk"
+                st.session_state.conv_video_id = selected_vid_id
+                st.session_state.conversation = []
+                st.query_params["page"] = "talk"
+                st.rerun()
             else:
-                st.warning("Não foi possível obter legendas. Tente outro vídeo.")
-
-    # ── VIDEO PLAYER ──
-    if st.session_state.yt_video_id and st.session_state.yt_transcript:
-        vid=st.session_state.yt_video_id
-        transcript=st.session_state.yt_transcript
-        title=st.session_state.yt_video_title
-
-        st.markdown("---")
-        st.markdown(f"### ▶️ {title[:70]}")
-        st.markdown(f'<iframe width="100%" height="380" src="https://www.youtube.com/embed/{vid}?cc_load_policy=1&cc_lang_pref=en" frameborder="0" allowfullscreen style="border-radius:12px;"></iframe>',unsafe_allow_html=True)
-
-        segments=transcript_to_segments(transcript,chunk=4)
-        st.markdown("### 📜 Praticar um trecho")
-        seg_idx=st.selectbox("Trecho:",range(len(segments)),
-            format_func=lambda i:f"[{segments[i]['start']//60:02d}:{segments[i]['start']%60:02d}] {segments[i]['text'][:55]}...",
-            label_visibility="collapsed")
-        seg=segments[seg_idx]
-
-        st.markdown(f"""<div class='card-accent'>
-          <div style='font-size:.75rem;color:#7A7A8A;letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;'>⏱ {seg['start']//60:02d}:{seg['start']%60:02d}</div>
-          <div style='font-size:1.15rem;line-height:1.9;font-weight:500;color:#F0EFE9;'>"{seg['text']}"</div>
-        </div>""",unsafe_allow_html=True)
-
-        tc1,tc2=st.columns(2)
-        with tc1: st.markdown(tts_btn(seg["text"],"🔊 Ouvir normal",0.85),unsafe_allow_html=True)
-        with tc2: st.markdown(tts_btn(seg["text"],"🐢 Ouvir devagar",0.6),unsafe_allow_html=True)
-        st.markdown(f"<a href='https://www.youtube.com/watch?v={vid}&t={seg['start']}s' target='_blank' style='color:#47CFFF;font-size:.85rem;'>▶ Abrir neste trecho no YouTube</a>",unsafe_allow_html=True)
-
-        st.markdown("---")
-        vt1,vt2=st.tabs(["🎙️ Gravar voz","✍️ Digitar"])
-        with vt1:
-            st.components.v1.html(STT_HTML,height=195)
-            vt_voice=st.text_area("Texto capturado:",placeholder="Cole aqui...",height=70,key="vt_voice")
-            if st.button("🤖 Analisar",use_container_width=True,key="vt_analyze_voice") and vt_voice.strip():
-                if not st.session_state.api_key: st.error("Insira API Key!")
-                else:
-                    with st.spinner("Analisando..."):
-                        r=ask_claude(f'English teacher. Original: "{seg["text"]}"\nStudent said: "{vt_voice}"\nFeedback em PT-BR: pronúncia, ritmo, vocabulário. Encorajador e específico.')
-                        if r:
-                            st.markdown(f"<div class='card' style='border-color:#47CFFF;'><b style='color:#47CFFF;'>🤖 Feedback</b><br><br>{r}</div>",unsafe_allow_html=True)
-                            st.session_state.xp+=15
-        with vt2:
-            vt_text=st.text_area("Escreva o que disse:",placeholder="Type here...",height=80,key="vt_text")
-            if st.button("🤖 Analisar",use_container_width=True,key="vt_analyze_text") and vt_text.strip():
-                if not st.session_state.api_key: st.error("Insira API Key!")
-                else:
-                    with st.spinner("Analisando..."):
-                        r=ask_claude(f'English teacher, shadowing. Original: "{seg["text"]}"\nStudent wrote: "{vt_text}"\nFeedback em PT-BR: pronúncia, ritmo, vocabulário.')
-                        if r:
-                            st.markdown(f"<div class='card' style='border-color:#47CFFF;'><b style='color:#47CFFF;'>🤖 Feedback</b><br><br>{r}</div>",unsafe_allow_html=True)
-                            st.session_state.xp+=15
-
-        st.markdown("---")
-        st.markdown("### 💬 Perguntar sobre o vídeo")
-        full_text=transcript_to_text(transcript)
-        yt_q=st.text_input("Dúvida:",placeholder="Ex: O que significa 'figure out'? Qual o tom do apresentador?")
-        if st.button("❓ Perguntar ao Claude",use_container_width=True) and yt_q.strip():
-            if not st.session_state.api_key: st.error("Insira API Key!")
-            else:
-                with st.spinner("Analisando..."):
-                    r=ask_claude(f'English teacher. Video transcript:\n"{full_text}"\nStudent question (PT): "{yt_q}"\nAnswer in PT-BR, teacher-style, educational.', max_tokens=600)
-                    if r: st.markdown(f"<div class='card-blue'><b style='color:#47CFFF;'>🤖 Professor</b><br><br>{r}</div>",unsafe_allow_html=True)
+                st.warning("No subtitles available. Try another video.")
 
 # ═══════════════════════════════════════════════════════════════
-# TAB 3 — SHADOWING CLÁSSICO
+# PAGE: TALK
 # ═══════════════════════════════════════════════════════════════
-with tab_shadow:
-    st.markdown("<h2>🎬 Shadowing com Filmes & Séries</h2>",unsafe_allow_html=True)
-    sc1,sc2=st.columns([2,1])
-    with sc1: scene_name=st.selectbox("Cena",list(SAMPLE_SCENES.keys()),label_visibility="collapsed")
-    scene=SAMPLE_SCENES[scene_name]
-    with sc2:
-        lc={"Básico":"#47CFFF","Intermediário":"#E8FF47","Avançado":"#FF6B6B"}.get(scene["level"],"#E8FF47")
-        st.markdown(f"<div style='padding-top:.5rem'><span style='background:{lc}22;color:{lc};border:1px solid {lc}55;border-radius:20px;padding:4px 14px;font-size:.85rem;font-weight:600;'>{scene['level']}</span></div>",unsafe_allow_html=True)
+elif page == "talk":
+    has_video = bool(st.session_state.conv_video_id and st.session_state.yt_transcript)
 
-    st.markdown(f"""<div class='card-accent' style='margin-top:1rem;'>
-      <div style='font-size:.75rem;color:#7A7A8A;letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;'>🇺🇸 Original</div>
-      <div style='font-size:1.15rem;line-height:1.9;font-weight:500;color:#F0EFE9;'>"{scene['en']}"</div>
-    </div>""",unsafe_allow_html=True)
+    if has_video:
+        title = st.session_state.yt_video_title
+        vid_id = st.session_state.yt_video_id
+        st.markdown(f"<div style='padding-top:1.2rem;'><h2 style='margin-bottom:.1rem;'>Talk about</h2><div style='color:#8A8A9A;font-size:.9rem;margin-bottom:.8rem;'>🎬 {title[:50]}{'...' if len(title)>50 else ''}</div></div>", unsafe_allow_html=True)
+        with st.expander("▶ Watch video"):
+            st.markdown(f'<iframe width="100%" height="220" src="https://www.youtube.com/embed/{vid_id}?cc_load_policy=1&cc_lang_pref=en" frameborder="0" allowfullscreen></iframe>', unsafe_allow_html=True)
 
-    sb1,sb2=st.columns(2)
-    with sb1: st.markdown(tts_btn(scene["en"],"🔊 Ouvir normal",0.9),unsafe_allow_html=True)
-    with sb2: st.markdown(tts_btn(scene["en"],"🐢 Ouvir devagar",0.6),unsafe_allow_html=True)
+        system = f"""You are an engaging English conversation partner for a Brazilian learner.
+The student has just watched a YouTube video titled: "{title}".
+Video transcript context: "{transcript_to_text(st.session_state.yt_transcript, 2000)}"
 
-    if st.checkbox("📖 Mostrar tradução"):
-        pt_text = scene['pt']
-        st.markdown(f"<div class='card' style='border-color:#47CFFF44;'><div style='color:#47CFFF;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;'>🇧🇷 Tradução</div><div style='color:#B0B0C0;line-height:1.7;'>{pt_text}</div></div>",unsafe_allow_html=True)
+Your role:
+- Have a natural flowing conversation about the video content
+- Ask follow-up questions to keep the conversation going
+- Gently model correct English (don't explicitly correct unless asked)
+- Keep responses concise (2-4 sentences) — this is a spoken conversation
+- Occasionally introduce vocabulary from the video naturally
+- Be warm, encouraging, and curious"""
+    else:
+        st.markdown("<div style='padding-top:1.2rem;'><h2>Free conversation</h2><p style='color:#8A8A9A;font-size:.9rem;'>Practice English — talk about anything!</p></div>", unsafe_allow_html=True)
+        system = """You are an engaging English conversation partner for a Brazilian learner.
+Your role:
+- Have natural, flowing conversations on any topic
+- Keep responses concise (2-4 sentences) — this is a spoken conversation
+- Gently model correct English without explicitly correcting
+- Ask follow-up questions to keep the conversation alive
+- Be warm, encouraging, and genuinely curious"""
 
-    st.markdown(f"<div style='margin:.5rem 0 1rem;'><span style='font-size:.8rem;color:#7A7A8A;'>📌 Vocab: </span>{''.join(f'<span class=tag>{w}</span>' for w in scene['vocab'])}</div>",unsafe_allow_html=True)
-    st.info(f"💡 **Dica:** {scene['tips']}")
-    st.markdown("---")
-
-    ss1,ss2=st.tabs(["🎙️ Gravar voz","✍️ Digitar"])
-    with ss1:
-        st.components.v1.html(STT_HTML,height=195)
-        sv=st.text_area("Texto capturado:",placeholder="Cole aqui...",height=70,key="sv")
-        if st.button("🤖 Analisar gravação",use_container_width=True,key="sv_btn") and sv.strip():
-            if not st.session_state.api_key: st.error("Insira API Key!")
-            else:
-                with st.spinner("Analisando..."):
-                    r=ask_claude(f'Shadowing teacher. Original: "{scene["en"]}"\nStudent: "{sv}"\nFeedback PT-BR: pontos positivos, dicas pronúncia/ritmo, frase-chave, encorajamento.')
-                    if r:
-                        st.markdown(f"<div class='card' style='border-color:#47CFFF;'><b style='color:#47CFFF;'>🤖 Feedback</b><br><br>{r}</div>",unsafe_allow_html=True)
-                        st.session_state.xp+=15; st.success(f"🎉 +15 XP!")
-    with ss2:
-        st_text=st.text_area("Escreva o que falou:",placeholder="Type here...",height=100,key="st_text")
-        fb=st.radio("Análise:",["🎯 Pronúncia/ritmo","📝 Gramática","🌟 Completa"],horizontal=True)
-        if st.button("🤖 Analisar texto",use_container_width=True,key="st_btn") and st_text.strip():
-            if not st.session_state.api_key: st.error("Insira API Key!")
-            else:
-                with st.spinner("Analisando..."):
-                    r=ask_claude(f'Shadowing teacher, {fb}. Original: "{scene["en"]}"\nStudent: "{st_text}"\nFeedback PT-BR, amigável.')
-                    if r:
-                        st.markdown(f"<div class='card' style='border-color:#47CFFF;'><b style='color:#47CFFF;'>🤖 Feedback</b><br><br>{r}</div>",unsafe_allow_html=True)
-                        st.session_state.xp+=15; st.success(f"🎉 +15 XP!")
-
-# ═══════════════════════════════════════════════════════════════
-# TAB 4 — CONVERSAÇÃO
-# ═══════════════════════════════════════════════════════════════
-with tab_conv:
-    st.markdown("<h2>🤖 Conversação com Voz</h2>",unsafe_allow_html=True)
-    cp,ct=st.columns(2)
-    with cp: persona_name=st.selectbox("Professor",list(PERSONAS.keys()),label_visibility="collapsed")
-    with ct: topic=st.selectbox("Tema",["💬 Livre"]+list(TOPIC_STARTERS.keys()),label_visibility="collapsed")
-    persona=PERSONAS[persona_name]
-    st.markdown(f"<div class='card'><span style='color:#E8FF47;font-weight:600;'>{persona_name}</span><br><span class='muted-text'>{persona['desc']}</span></div>",unsafe_allow_html=True)
-
-    cn,cl=st.columns(2)
-    with cn:
-        if st.button("🔄 Nova conversa",use_container_width=True): st.session_state.conversation=[]; st.rerun()
-    with cl: correction=st.selectbox("Correção",["🟡 Suave","🔴 Detalhada","🟢 Só elogios"],label_visibility="collapsed")
-
-    if not st.session_state.conversation and topic!="💬 Livre":
-        s=TOPIC_STARTERS.get(topic,"")
-        if s: st.session_state.conversation.append({"role":"assistant","content":s})
-
+    # Start conversation
     if not st.session_state.conversation:
-        st.markdown("<div style='text-align:center;padding:2rem;color:#7A7A8A;'><div style='font-size:2.5rem;'>💬</div><div>Escreva ou grave em inglês abaixo!</div></div>",unsafe_allow_html=True)
-    else:
-        for msg in st.session_state.conversation:
-            if msg["role"]=="user":
-                st.markdown(f"<div class='msg-user'><span style='font-size:.75rem;color:#E8FF47;font-weight:600;'>VOCÊ</span><br>{msg['content']}</div>",unsafe_allow_html=True)
-            else:
-                st.markdown(f"<div class='msg-ai'><span style='font-size:.75rem;color:#47CFFF;font-weight:600;'>PROFESSOR IA</span><br>{msg['content']}</div>",unsafe_allow_html=True)
-                if st.session_state.tts_enabled:
-                    st.markdown(tts_btn(msg["content"],"🔊 Ouvir",persona["voice_rate"]),unsafe_allow_html=True)
+        if st.session_state.api_key:
+            with st.spinner("Starting conversation..."):
+                if has_video:
+                    opener = ask_claude_chat([], system + "\n\nStart the conversation with one engaging question about the video. Be warm and brief.")
+                else:
+                    opener = ask_claude_chat([], system + "\n\nGreet the student warmly and ask one simple question to start the conversation.")
+                if opener:
+                    st.session_state.conversation = [{"role": "assistant", "content": opener}]
+                    st.session_state.metric_conversations += 1
+                    st.session_state.conv_start_time = datetime.datetime.now()
+                    if st.session_state.tts_enabled if hasattr(st.session_state, 'tts_enabled') else True:
+                        pass
+                    st.rerun()
+        else:
+            st.markdown("<a href='?page=settings' style='text-decoration:none;'><div class='card-coral' style='cursor:pointer;'><b style='color:#FF4B4B;'>🔑 Add your API Key</b><br><span style='color:#8A8A9A;font-size:.9rem;'>Tap here to go to Settings.</span></div></a>", unsafe_allow_html=True)
+
+    # Chat history
+    for msg in st.session_state.conversation:
+        if msg["role"] == "user":
+            st.markdown(f"<div class='bubble-user'>{msg['content']}</div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='bubble-ai'>{msg['content']}</div>", unsafe_allow_html=True)
+            st.markdown(tts_btn(msg["content"], "🔊 Listen", 0.88), unsafe_allow_html=True)
 
     st.markdown("---")
-    input_mode=st.radio("Responder:",["✍️ Digitar","🎙️ Gravar voz"],horizontal=True)
-    cmap={"🟡 Suave":"Correct subtly by modeling correct English.","🔴 Detalhada":"Explicitly explain errors in Portuguese.","🟢 Só elogios":"Only correct critical errors, be very encouraging."}
-    system=f"{persona['system']}\nCorrection: {cmap[correction]}\nAlways respond in English."
 
-    if input_mode=="✍️ Digitar":
-        um=st.text_area("Em inglês:",placeholder="Type in English...",height=85,key="cv_type")
-        cs1,cs2=st.columns([2,1])
-        with cs1: send=st.button("📤 Enviar",use_container_width=True)
-        with cs2: translate=st.button("🇧🇷→🇺🇸",use_container_width=True)
-        if translate and um.strip() and st.session_state.api_key:
-            with st.spinner("Traduzindo..."):
-                tr=ask_claude_chat([{"role":"user","content":f"Translate to natural English: {um}"}],"You are a translator. Return ONLY the English translation.")
-                if tr: st.info(f"🇺🇸 **{tr}**")
-        if send and um.strip():
-            if not st.session_state.api_key: st.error("Insira API Key!")
+    # Voice input
+    input_mode = st.radio("", ["🎙️ Voice", "✍️ Type"], horizontal=True, label_visibility="collapsed")
+
+    if input_mode == "🎙️ Voice":
+        st.components.v1.html(STT_AUTO_HTML, height=220)
+        voice_text = st.text_area("Transcribed text:", placeholder="transcri...", height=70, key="talk_voice", label_visibility="collapsed")
+        if st.button("Send →", use_container_width=True, key="send_voice") and voice_text.strip():
+            if not st.session_state.api_key:
+                st.error("Go to Settings to add your API Key.")
             else:
-                st.session_state.conversation.append({"role":"user","content":um})
-                with st.spinner("Respondendo..."):
-                    r=ask_claude_chat(st.session_state.conversation,system)
+                st.session_state.conversation.append({"role": "user", "content": voice_text.strip()})
+                with st.spinner(""):
+                    r = ask_claude_chat(st.session_state.conversation, system)
                     if r:
-                        st.session_state.conversation.append({"role":"assistant","content":r})
-                        st.session_state.xp+=10; st.rerun()
+                        st.session_state.conversation.append({"role": "assistant", "content": r})
+                        if st.session_state.conv_start_time:
+                            elapsed = (datetime.datetime.now() - st.session_state.conv_start_time).seconds // 60
+                            st.session_state.metric_minutes = max(st.session_state.metric_minutes, elapsed)
+                        st.rerun()
     else:
-        st.components.v1.html(STT_HTML,height=195)
-        cv_voice=st.text_area("Texto reconhecido:",placeholder="Cole aqui...",height=70,key="cv_voice")
-        if st.button("📤 Enviar gravação",use_container_width=True) and cv_voice.strip():
-            if not st.session_state.api_key: st.error("Insira API Key!")
+        typed = st.text_area("Your message:", placeholder="Type in English...", height=85, key="talk_type", label_visibility="collapsed")
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            if st.button("Send →", use_container_width=True, key="send_typed") and typed.strip():
+                if not st.session_state.api_key:
+                    st.error("Go to Settings to add your API Key.")
+                else:
+                    st.session_state.conversation.append({"role": "user", "content": typed.strip()})
+                    with st.spinner(""):
+                        r = ask_claude_chat(st.session_state.conversation, system)
+                        if r:
+                            st.session_state.conversation.append({"role": "assistant", "content": r})
+                            if st.session_state.conv_start_time:
+                                elapsed = (datetime.datetime.now() - st.session_state.conv_start_time).seconds // 60
+                                st.session_state.metric_minutes = max(st.session_state.metric_minutes, elapsed)
+                            st.rerun()
+        with c2:
+            if st.button("🔄 New", use_container_width=True, key="new_conv"):
+                st.session_state.conversation = []
+                st.session_state.conv_start_time = None
+                st.rerun()
+
+    # Generate flashcards from this conversation
+    if has_video and len(st.session_state.conversation) >= 6:
+        st.markdown("---")
+        if st.button("✨ Save flashcards from this video", use_container_width=True):
+            if not st.session_state.api_key:
+                st.error("Go to Settings to add your API Key.")
             else:
-                st.session_state.conversation.append({"role":"user","content":cv_voice})
-                with st.spinner("Respondendo..."):
-                    r=ask_claude_chat(st.session_state.conversation,system)
-                    if r:
-                        st.session_state.conversation.append({"role":"assistant","content":r})
-                        st.session_state.xp+=10; st.rerun()
-
-    if st.session_state.conversation:
-        u=[m for m in st.session_state.conversation if m["role"]=="user"]
-        st.markdown(f"<div class='muted-text' style='margin-top:1rem;'>📊 {len(u)} msgs · {sum(len(m['content'].split()) for m in u)} palavras · +{len(u)*10} XP</div>",unsafe_allow_html=True)
+                with st.spinner("Generating flashcards..."):
+                    cards = generate_flashcards_from_video(
+                        st.session_state.yt_video_title,
+                        transcript_to_text(st.session_state.yt_transcript)
+                    )
+                    if cards:
+                        st.session_state.flashcard_decks["🎬 From Videos"].extend(cards)
+                        st.success(f"✅ {len(cards)} flashcards added to 'From Videos' deck!")
+                    else:
+                        st.warning("Couldn't generate flashcards.")
 
 # ═══════════════════════════════════════════════════════════════
-# TAB 5 — FLASHCARDS
+# PAGE: CARDS (FLASHCARDS)
 # ═══════════════════════════════════════════════════════════════
-with tab_flash:
-    st.markdown("<h2>🃏 Flashcards com Revisão Espaçada</h2>",unsafe_allow_html=True)
-    ft1,ft2,ft3=st.tabs(["📚 Estudar","🗂️ Gerenciar","✨ Gerar com IA"])
+elif page == "cards":
+    st.markdown("<h1 style='padding-top:1.5rem;'>Flashcards</h1>", unsafe_allow_html=True)
+    fc_tab1, fc_tab2, fc_tab3 = st.tabs(["📚 Study", "🗂️ Manage", "✨ Generate"])
 
-    with ft1:
-        fd,fs=st.columns([2,1])
-        with fd: deck_name=st.selectbox("Baralho",list(st.session_state.flashcard_decks.keys()),label_visibility="collapsed")
-        deck=st.session_state.flashcard_decks[deck_name]
-        due=get_due(deck)
-        with fs: st.markdown(f"<div style='padding:.5rem 0;'><span style='color:#E8FF47;font-weight:700;font-size:1.2rem;'>{len(due)}</span> <span class='muted-text'>p/ revisar</span></div>",unsafe_allow_html=True)
+    with fc_tab1:
+        deck_name = st.selectbox("Deck:", list(st.session_state.flashcard_decks.keys()), label_visibility="collapsed")
+        deck = st.session_state.flashcard_decks[deck_name]
+        due = get_due(deck)
 
-        if not due:
-            st.markdown("<div style='text-align:center;padding:3rem;'><div style='font-size:3rem;'>🎉</div><h3 style='color:#E8FF47;'>Tudo em dia!</h3><p class='muted-text'>Volte amanhã!</p></div>",unsafe_allow_html=True)
+        if not deck:
+            st.markdown("<div class='card' style='text-align:center;padding:2rem;'><div style='font-size:2.5rem;'>📭</div><p style='color:#8A8A9A;'>No cards yet.<br>Generate from a video or add manually.</p></div>", unsafe_allow_html=True)
+        elif not due:
+            st.markdown("<div class='card' style='text-align:center;padding:2rem;'><div style='font-size:2.5rem;'>🎉</div><h3 style='color:#FF4B4B;'>All caught up!</h3><p style='color:#8A8A9A;'>Come back tomorrow!</p></div>", unsafe_allow_html=True)
         else:
-            if st.session_state.fc_index>=len(due): st.session_state.fc_index=0
-            ci=due[st.session_state.fc_index]; card=deck[ci]
-            lvls=["🌱 Novo","🔵 Fácil","🟡 Médio","🟠 Difícil","🟢 Dominado","⭐ Expert"]
-            st.progress(st.session_state.fc_index/len(due))
-            st.markdown(f"<div class='muted-text' style='text-align:right;'>{st.session_state.fc_index+1}/{len(due)}</div>",unsafe_allow_html=True)
+            if st.session_state.fc_index >= len(due):
+                st.session_state.fc_index = 0
+            ci = due[st.session_state.fc_index]
+            card = deck[ci]
+            lvls = ["🌱 New", "🔵 Easy", "🟡 Medium", "🟠 Hard", "🟢 Mastered", "⭐ Expert"]
+
+            st.progress(st.session_state.fc_index / len(due))
+            st.markdown(f"<p style='text-align:right;color:#8A8A9A;font-size:.85rem;'>{st.session_state.fc_index+1}/{len(due)}</p>", unsafe_allow_html=True)
+
             st.markdown(f"""<div class='flashcard'>
-              <div style='font-size:.75rem;color:#7A7A8A;letter-spacing:2px;text-transform:uppercase;margin-bottom:1rem;'>🇺🇸 Inglês</div>
-              <div style='font-size:2rem;font-family:Syne,sans-serif;font-weight:800;color:#E8FF47;margin-bottom:.5rem;'>{card["en"]}</div>
-              <div style='font-size:.8rem;color:#7A7A8A;'>{lvls[min(card.get("level",0),5)]}</div>
-            </div>""",unsafe_allow_html=True)
-            ff1,ff2=st.columns(2)
-            with ff1:
-                if st.button("👁️ Ver resposta" if not st.session_state.fc_show_answer else "🙈 Esconder",use_container_width=True):
-                    st.session_state.fc_show_answer=not st.session_state.fc_show_answer; st.rerun()
-            with ff2: st.markdown(tts_btn(card["en"],"🔊 Pronúncia",0.8),unsafe_allow_html=True)
+              <div style='font-size:.7rem;color:#8A8A9A;letter-spacing:2px;text-transform:uppercase;margin-bottom:.8rem;'>🇺🇸 English</div>
+              <div style='font-size:1.8rem;font-weight:800;color:#FF4B4B;margin-bottom:.4rem;'>{card["en"]}</div>
+              <div style='font-size:.8rem;color:#8A8A9A;'>{lvls[min(card.get("level",0),5)]}</div>
+            </div>""", unsafe_allow_html=True)
+
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("👁️ Show answer" if not st.session_state.fc_show_answer else "🙈 Hide", use_container_width=True):
+                    st.session_state.fc_show_answer = not st.session_state.fc_show_answer; st.rerun()
+            with col_b:
+                st.markdown(tts_btn(card["en"], "🔊 Pronunciation", 0.8), unsafe_allow_html=True)
 
             if st.session_state.fc_show_answer:
-                st.markdown(f"""<div class='card' style='text-align:center;border-color:#47CFFF;'>
-                  <div style='font-size:.75rem;color:#47CFFF;letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;'>🇧🇷</div>
-                  <div style='font-size:1.4rem;font-weight:600;color:#F0EFE9;margin-bottom:.8rem;'>{card["pt"]}</div>
-                  <div style='font-size:.85rem;color:#7A7A8A;font-style:italic;'>"{card["example"]}"</div>
-                </div>""",unsafe_allow_html=True)
-                st.markdown(tts_btn(card["example"],"🔊 Ouvir exemplo",0.85),unsafe_allow_html=True)
-                st.markdown("**Como foi?**")
-                fr1,fr2,fr3,fr4=st.columns(4)
-                for col,label,q in [(fr1,"😰 Errei",0),(fr2,"🤔 Difícil",2),(fr3,"😊 Lembrei",3),(fr4,"🚀 Fácil!",5)]:
+                st.markdown(f"""<div class='card' style='text-align:center;border-color:#FF4B4B44;margin-top:.5rem;'>
+                  <div style='font-size:.7rem;color:#FF4B4B;letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;'>🇧🇷 Portuguese</div>
+                  <div style='font-size:1.3rem;font-weight:700;margin-bottom:.6rem;'>{card["pt"]}</div>
+                  <div style='font-size:.85rem;color:#8A8A9A;font-style:italic;'>"{card["example"]}"</div>
+                </div>""", unsafe_allow_html=True)
+                st.markdown(tts_btn(card["example"], "🔊 Example", 0.85), unsafe_allow_html=True)
+                st.markdown("**How was it?**")
+                r1, r2, r3, r4 = st.columns(4)
+                for col, label, q in [(r1, "😰 Hard", 0), (r2, "🤔 OK", 2), (r3, "😊 Good", 3), (r4, "🚀 Easy", 5)]:
                     with col:
-                        if st.button(label,use_container_width=True,key=f"fc_{q}_{deck_name}"):
-                            st.session_state.flashcard_decks[deck_name]=update_review(st.session_state.flashcard_decks[deck_name],ci,q)
-                            st.session_state.fc_index+=1; st.session_state.fc_show_answer=False
-                            st.session_state.xp+=(q+1)*3; st.rerun()
+                        if st.button(label, use_container_width=True, key=f"fc_{q}_{deck_name}"):
+                            st.session_state.flashcard_decks[deck_name] = update_review(
+                                st.session_state.flashcard_decks[deck_name], ci, q)
+                            st.session_state.fc_index += 1
+                            st.session_state.fc_show_answer = False
+                            st.session_state.metric_flashcards_reviewed += 1
+                            st.rerun()
 
-    with ft2:
-        st.markdown("### ➕ Adicionar card")
-        tgt=st.selectbox("Baralho:",list(st.session_state.flashcard_decks.keys()),key="add_dk")
-        fa1,fa2=st.columns(2)
-        with fa1: new_en=st.text_input("Inglês")
-        with fa2: new_pt=st.text_input("Português")
-        new_ex=st.text_input("Exemplo")
-        if st.button("💾 Adicionar") and new_en and new_pt:
-            st.session_state.flashcard_decks[tgt].append({"en":new_en,"pt":new_pt,"example":new_ex or f"Example with '{new_en}'.","level":0,"next_review":""})
-            st.success(f"✅ '{new_en}' adicionado!")
-        st.markdown("### 🗂️ Novo baralho")
-        new_dk=st.text_input("Nome (ex: '🏖️ Viagens')")
-        if st.button("Criar") and new_dk:
+    with fc_tab2:
+        st.markdown("### Add card")
+        tgt = st.selectbox("Deck:", list(st.session_state.flashcard_decks.keys()), key="add_dk")
+        fa1, fa2 = st.columns(2)
+        with fa1: new_en = st.text_input("English")
+        with fa2: new_pt = st.text_input("Portuguese")
+        new_ex = st.text_input("Example sentence")
+        if st.button("Add card", use_container_width=True) and new_en and new_pt:
+            st.session_state.flashcard_decks[tgt].append({"en": new_en, "pt": new_pt, "example": new_ex or f"Example with '{new_en}'.", "level": 0, "next_review": ""})
+            st.success(f"✅ '{new_en}' added!")
+        st.markdown("### New deck")
+        new_dk = st.text_input("Deck name:")
+        if st.button("Create deck", use_container_width=True) and new_dk:
             if new_dk not in st.session_state.flashcard_decks:
-                st.session_state.flashcard_decks[new_dk]=[]; st.success(f"'{new_dk}' criado!")
-            else: st.warning("Já existe!")
-
-    with ft3:
-        st.markdown("### ✨ Gerar com IA")
-        gt=st.text_input("Tema:",placeholder="Ex: phrasal verbs, viagem, tecnologia...")
-        gq2,gl2=st.columns(2)
-        with gq2: gqty=st.slider("Cards:",3,15,8)
-        with gl2: glvl=st.select_slider("Nível:",["Básico","Intermediário","Avançado"],value="Intermediário")
-        gdk=st.selectbox("Baralho destino:",list(st.session_state.flashcard_decks.keys()),key="gdk")
-        if st.button("🤖 Gerar",use_container_width=True):
-            if not st.session_state.api_key: st.error("Insira API Key!")
-            elif not gt.strip(): st.warning("Descreva um tema!")
+                st.session_state.flashcard_decks[new_dk] = []; st.success(f"'{new_dk}' created!")
             else:
-                with st.spinner("Gerando..."):
-                    r=ask_claude(f'Create {gqty} English flashcards for Brazilian {glvl} level about: {gt}\nReturn ONLY valid JSON array:\n[{{"en":"word","pt":"tradução","example":"Sentence."}}]')
+                st.warning("Deck already exists.")
+
+    with fc_tab3:
+        st.markdown("### Generate from video")
+        if st.session_state.yt_video_id and st.session_state.yt_transcript:
+            st.markdown(f"<div class='card-coral'>🎬 <b>{st.session_state.yt_video_title[:50]}</b></div>", unsafe_allow_html=True)
+            if st.button("✨ Generate flashcards from last video", use_container_width=True):
+                if not st.session_state.api_key:
+                    st.error("Go to Settings to add your API Key.")
+                else:
+                    with st.spinner("Generating..."):
+                        cards = generate_flashcards_from_video(
+                            st.session_state.yt_video_title,
+                            transcript_to_text(st.session_state.yt_transcript)
+                        )
+                        if cards:
+                            st.session_state.flashcard_decks["🎬 From Videos"].extend(cards)
+                            st.success(f"✅ {len(cards)} cards added to 'From Videos'!")
+                        else:
+                            st.warning("Couldn't generate. Try again.")
+        else:
+            st.info("Study a video first to generate flashcards from it.")
+
+        st.markdown("### Generate by topic")
+        gt = st.text_input("Topic:", placeholder="e.g. phrasal verbs, travel, technology...")
+        gcols = st.columns(2)
+        with gcols[0]: gqty = st.slider("Cards:", 3, 15, 8)
+        with gcols[1]: glvl = st.select_slider("Level:", ["Beginner", "Intermediate", "Advanced"], value="Intermediate")
+        gdk = st.selectbox("Add to deck:", list(st.session_state.flashcard_decks.keys()), key="gdk")
+        if st.button("🤖 Generate", use_container_width=True):
+            if not st.session_state.api_key: st.error("Add your API Key first.")
+            elif not gt.strip(): st.warning("Enter a topic.")
+            else:
+                with st.spinner("Generating..."):
+                    r = ask_claude(f'Create {gqty} English flashcards for Brazilian {glvl} level about: {gt}\nReturn ONLY valid JSON array:\n[{{"en":"word","pt":"tradução","example":"Sentence."}}]')
                     if r:
                         try:
-                            m=re.search(r'\[.*\]',r,re.DOTALL)
+                            m = re.search(r'\[.*\]', r, re.DOTALL)
                             if m:
-                                cards=json.loads(m.group()); added=0
+                                cards = json.loads(m.group()); added = 0
                                 for c in cards:
                                     if "en" in c and "pt" in c:
-                                        st.session_state.flashcard_decks[gdk].append({"en":c["en"],"pt":c["pt"],"example":c.get("example",""),"level":0,"next_review":""})
-                                        added+=1
-                                st.success(f"✅ {added} cards adicionados!"); st.session_state.xp+=added*5; st.rerun()
-                        except Exception as e: st.error(f"Erro: {e}")
+                                        st.session_state.flashcard_decks[gdk].append({"en": c["en"], "pt": c["pt"], "example": c.get("example", ""), "level": 0, "next_review": ""})
+                                        added += 1
+                                st.success(f"✅ {added} cards added!"); st.rerun()
+                        except Exception as e:
+                            st.error(f"Error: {e}")
 
 # ═══════════════════════════════════════════════════════════════
-# TAB 6 — PROGRESSO
+# PAGE: PROGRESS
 # ═══════════════════════════════════════════════════════════════
-with tab_prog:
-    st.markdown("<h2>📊 Seu Progresso</h2>",unsafe_allow_html=True)
-    xp=st.session_state.xp; lvl=xp//100+1; xp_in=xp%100
-    lnames=["Iniciante","Explorador","Estudante","Comunicador","Fluente","Expert","Mestre"]
-    lname=lnames[min(lvl-1,6)]
-    pm1,pm2,pm3,pm4=st.columns(4)
-    with pm1: st.metric("⚡ XP",xp)
-    with pm2: st.metric("🏅 Nível",f"{lvl} — {lname}")
-    with pm3: st.metric("🔥 Streak",f"{st.session_state.streak}d")
-    with pm4: st.metric("🃏 Cards",sum(len(v) for v in st.session_state.flashcard_decks.values()))
-    st.markdown(f"<div class='card' style='margin-top:1rem;'><div style='display:flex;justify-content:space-between;'><span style='color:#E8FF47;font-weight:700;'>Nível {lvl}: {lname}</span><span class='muted-text'>{xp_in}/100 XP</span></div></div>",unsafe_allow_html=True)
-    st.progress(xp_in/100)
-    st.markdown("---")
-    st.markdown("### 🃏 Flashcards")
-    for dn,cards in st.session_state.flashcard_decks.items():
-        today=datetime.date.today().isoformat()
-        due_n=sum(1 for c in cards if not c.get("next_review") or c["next_review"]<=today)
-        mastered=sum(1 for c in cards if c.get("level",0)>=4)
-        total=len(cards)
-        pp1,pp2,pp3,pp4=st.columns([3,1,1,1])
-        with pp1: st.markdown(f"**{dn}**")
-        with pp2: st.markdown(f"<span style='color:{'#FF6B6B' if due_n>0 else '#47CFFF'};font-weight:700;'>{due_n}</span> <span class='muted-text'>revisar</span>",unsafe_allow_html=True)
-        with pp3: st.markdown(f"<span style='color:#E8FF47;font-weight:700;'>{mastered}</span> <span class='muted-text'>dominou</span>",unsafe_allow_html=True)
-        with pp4: st.markdown(f"<span class='muted-text'>{total} total</span>",unsafe_allow_html=True)
-        if total>0: st.progress(mastered/total)
-    st.markdown("---")
-    for icon,title,desc in [
-        ("🌟","Sugestões semanais","Novos vídeos toda segunda-feira, selecionados para seu nível."),
-        ("🎬","Shadowing diário","15–20 min/dia supera 2h no fim de semana."),
-        ("🎙️","Fale sem medo","O reconhecimento de voz treina sua pronúncia de verdade."),
-        ("🃏","Revisão espaçada","Ciência, não força de vontade — revise no horário certo."),
-    ]:
-        st.markdown(f"<div class='card' style='display:flex;gap:1rem;align-items:flex-start;'><div style='font-size:1.8rem;'>{icon}</div><div><div style='font-weight:700;color:#F0EFE9;'>{title}</div><div class='muted-text'>{desc}</div></div></div>",unsafe_allow_html=True)
-    with st.expander("⚙️ Configurações"):
-        ex1,ex2=st.columns(2)
-        with ex1:
-            if st.button("🔄 Resetar XP"): st.session_state.xp=0; st.session_state.streak=0; st.rerun()
-        with ex2:
-            b=st.number_input("XP manual:",0,500,0,10)
-            if st.button("➕ Add XP") and b>0: st.session_state.xp+=b; st.rerun()
+# ═══════════════════════════════════════════════════════════════
+# PAGE: SETTINGS (replaces hidden sidebar — API keys + progress)
+# ═══════════════════════════════════════════════════════════════
+elif page == "settings":
+    st.markdown("<div style='padding-top:1.5rem;'></div>", unsafe_allow_html=True)
+
+    # App logo / header
+    st.markdown("""
+    <div style='text-align:center;padding:1.5rem 0 1rem;'>
+      <div style='width:64px;height:64px;background:#FF4B4B;border-radius:18px;margin:0 auto .8rem;display:flex;align-items:center;justify-content:center;'>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+      </div>
+      <div style='font-size:1.4rem;font-weight:800;color:#1A1A2E;'>FluentAI</div>
+      <div style='font-size:.85rem;color:#8A8A9A;'>English learning with AI</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # API Keys section
+    st.markdown("<div style='font-weight:700;font-size:1rem;margin:.8rem 0 .4rem;'>API Keys</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card' style='padding:1.3rem;'>", unsafe_allow_html=True)
+    st.markdown("<div style='font-weight:600;font-size:.9rem;margin-bottom:.2rem;'>Anthropic (Claude AI)</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:.8rem;color:#8A8A9A;margin-bottom:.5rem;'>Required for conversations and flashcard generation</div>", unsafe_allow_html=True)
+    api_in = st.text_input(
+        "anthropic_key",
+        value=st.session_state.api_key,
+        type="password",
+        placeholder="sk-ant-api...",
+        label_visibility="collapsed"
+    )
+    if api_in != st.session_state.api_key:
+        st.session_state.api_key = api_in
+        st.rerun()
+    if st.session_state.api_key:
+        st.markdown("<div style='color:#22C55E;font-size:.82rem;font-weight:600;margin-top:.3rem;'>✓ Connected</div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<div style='color:#FF4B4B;font-size:.82rem;font-weight:600;margin-top:.3rem;'>Not set</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card' style='padding:1.3rem;'>", unsafe_allow_html=True)
+    st.markdown("<div style='font-weight:600;font-size:.9rem;margin-bottom:.2rem;'>YouTube Data API <span style='background:#f3f4f6;color:#8A8A9A;border-radius:6px;padding:1px 7px;font-size:.75rem;font-weight:500;'>Optional</span></div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:.8rem;color:#8A8A9A;margin-bottom:.5rem;'>Enables live YouTube search. Without it, curated videos are used.</div>", unsafe_allow_html=True)
+    yt_in = st.text_input(
+        "yt_key",
+        value=st.session_state.yt_api_key,
+        type="password",
+        placeholder="AIza...",
+        label_visibility="collapsed"
+    )
+    if yt_in != st.session_state.yt_api_key:
+        st.session_state.yt_api_key = yt_in
+        st.rerun()
+    if st.session_state.yt_api_key:
+        st.markdown("<div style='color:#22C55E;font-size:.82rem;font-weight:600;margin-top:.3rem;'>✓ Connected</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Progress section
+    st.markdown("<div style='font-weight:700;font-size:1rem;margin:1.2rem 0 .4rem;'>Your Progress</div>", unsafe_allow_html=True)
+
+    s1, s2 = st.columns(2)
+    s3, s4 = st.columns(2)
+    with s1:
+        st.markdown(f"<div class='card' style='text-align:center;padding:1.1rem .8rem;'><div style='font-size:1.6rem;font-weight:800;color:#FF4B4B;'>{st.session_state.metric_conversations}</div><div style='font-size:.78rem;color:#8A8A9A;font-weight:500;'>Conversations</div></div>", unsafe_allow_html=True)
+    with s2:
+        st.markdown(f"<div class='card' style='text-align:center;padding:1.1rem .8rem;'><div style='font-size:1.6rem;font-weight:800;color:#FF4B4B;'>{st.session_state.metric_minutes}m</div><div style='font-size:.78rem;color:#8A8A9A;font-weight:500;'>Minutes practiced</div></div>", unsafe_allow_html=True)
+    with s3:
+        st.markdown(f"<div class='card' style='text-align:center;padding:1.1rem .8rem;'><div style='font-size:1.6rem;font-weight:800;color:#FF4B4B;'>{st.session_state.metric_flashcards_reviewed}</div><div style='font-size:.78rem;color:#8A8A9A;font-weight:500;'>Cards reviewed</div></div>", unsafe_allow_html=True)
+    with s4:
+        st.markdown(f"<div class='card' style='text-align:center;padding:1.1rem .8rem;'><div style='font-size:1.6rem;font-weight:800;color:#FF4B4B;'>{len(st.session_state.metric_videos_studied)}</div><div style='font-size:.78rem;color:#8A8A9A;font-weight:500;'>Videos studied</div></div>", unsafe_allow_html=True)
+
+    # Flashcard decks
+    st.markdown("<div style='font-weight:700;font-size:1rem;margin:1.2rem 0 .4rem;'>Flashcard decks</div>", unsafe_allow_html=True)
+    today = datetime.date.today().isoformat()
+    has_decks = False
+    for dn, cards in st.session_state.flashcard_decks.items():
+        total = len(cards)
+        if total == 0: continue
+        has_decks = True
+        due_n = sum(1 for c in cards if not c.get("next_review") or c["next_review"] <= today)
+        mastered = sum(1 for c in cards if c.get("level", 0) >= 4)
+        st.markdown(f"""<div class='card' style='padding:1rem 1.2rem;'>
+          <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;'>
+            <span style='font-weight:600;font-size:.9rem;'>{dn}</span>
+            <span style='font-size:.8rem;color:#8A8A9A;'>{total} cards</span>
+          </div>
+          <div style='display:flex;gap:1rem;margin-bottom:.5rem;'>
+            <span style='font-size:.8rem;color:{"#FF4B4B" if due_n>0 else "#22C55E"};font-weight:600;'>{due_n} to review</span>
+            <span style='font-size:.8rem;color:#22C55E;font-weight:600;'>{mastered} mastered</span>
+          </div>
+        </div>""", unsafe_allow_html=True)
+        st.progress(mastered / total)
+    if not has_decks:
+        st.markdown("<div style='color:#8A8A9A;font-size:.9rem;'>No cards yet. Study a video to generate some!</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
+    if st.button("Reset all progress", use_container_width=True):
+        st.session_state.metric_conversations = 0
+        st.session_state.metric_minutes = 0
+        st.session_state.metric_flashcards_reviewed = 0
+        st.session_state.metric_videos_studied = set()
+        st.rerun()
